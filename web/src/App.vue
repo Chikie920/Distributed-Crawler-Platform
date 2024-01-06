@@ -1,5 +1,5 @@
 <template>
-    <mdui-layout full-height="true">
+    <mdui-layout full-height>
         <TopBar></TopBar>
         <Navi></Navi>
         <Container></Container>
@@ -12,10 +12,11 @@
     引入MDUI组件
 */
 
-
+import 'mdui/mdui.css'
 import 'mdui/components/layout.js'
 import 'mdui/components/layout-item.js'
 import 'mdui/components/layout-main.js'
+
 
 
 /*
@@ -28,4 +29,5 @@ import Container from './components/Container.vue'
 
 </script>
 
-<style scoped></style>
+<style scoped>
+</style>
