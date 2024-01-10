@@ -1,11 +1,11 @@
 <template>
-    <mdui-layout-main class="example-layout-main" full-height style="background-color: #fafdfd;">Main
-        <mdui-divider vertical middle class="divider"></mdui-divider>
+    <mdui-layout-main class="example-layout-main" full-height style="background-color: #fafdfd;">
+        <RouterView></RouterView>
     </mdui-layout-main>
 </template>
 
 <script setup>
-    import 'mdui/components/divider.js';
+    import { RouterView } from 'vue-router';
 </script>
 
 <style scoped>

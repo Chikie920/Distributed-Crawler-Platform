@@ -1,16 +1,19 @@
 <template>
     <mdui-navigation-drawer open="true" class="example-drawer navi" full-height ref="drawer">
-        <mdui-list class="list_container" v-for="item,idx in operateList" :key="idx">
-            <mdui-list-item rounded class="list_item">
-                <p class="list_item_p">
-                    {{ item }}
-                </p>
-                <mdui-icon-monitor v-if="idx==0"></mdui-icon-monitor>
-                <mdui-icon-post-add v-if="idx==1"></mdui-icon-post-add>
-                <mdui-icon-data-saver-off v-if="idx==2"></mdui-icon-data-saver-off>
-                <mdui-icon-analytics v-if="idx==3"></mdui-icon-analytics>
-                <mdui-icon-settings v-if="idx==4"></mdui-icon-settings>
-            </mdui-list-item>
+        <mdui-list class="list_container" v-for="item, idx in operateList" :key="idx">
+            <RouterLink :to="item.url">
+                <mdui-list-item rounded class="list_item">
+                    <p class="list_item_p">
+                        {{ item.operateName }}
+                    </p>
+                    <mdui-icon-monitor v-if="idx == 0"></mdui-icon-monitor>
+                    <mdui-icon-post-add v-if="idx == 1"></mdui-icon-post-add>
+                    <mdui-icon-data-saver-off v-if="idx == 2"></mdui-icon-data-saver-off>
+                    <mdui-icon-analytics v-if="idx == 3"></mdui-icon-analytics>
+                    <mdui-icon-settings v-if="idx == 4"></mdui-icon-settings>
+                </mdui-list-item>
+            </RouterLink>
+
         </mdui-list>
     </mdui-navigation-drawer>
 </template>
@@ -27,6 +30,7 @@ import '@mdui/icons/analytics.js'
 import '@mdui/icons/settings.js'
 import emitter from '@/tools/emitter.js'
 import { ref, onUnmounted } from 'vue'
+import { RouterLink } from 'vue-router'
 
 
 let drawer = ref() // 引用元素
@@ -46,7 +50,28 @@ onUnmounted(() => { // 在页面撤销时销毁绑定事件
     emitter.off('operateDrawer')
 })
 
-let operateList = ['状态监视', '任务创建', '资源管理', '数据分析', '设置']
+let operateList = [
+    {
+        operateName: '状态监视',
+        url: '/'
+    },
+    {
+        operateName: '任务创建',
+        url: '/taskasg'
+    },
+    {
+        operateName: '资源管理',
+        url: '/resmag'
+    },
+    {
+        operateName: '数据分析',
+        url: '/data'
+    },
+    {
+        operateName: '设置',
+        url: '/settings'
+    }
+]
 
 </script>
 
@@ -68,7 +93,8 @@ mdui-navigation-drawer::part(panel) {
 .list_item {
     height: 7vh;
     text-align: center;
-    display:flex;/*Flex布局*/
+    display: flex;
+    /*Flex布局*/
     /* display: -webkit-flex;
     align-items:center; */
 }
@@ -79,5 +105,4 @@ mdui-navigation-drawer::part(panel) {
     margin: auto;
     margin-left: 1rem;
 }
-
 </style>

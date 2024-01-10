@@ -23,9 +23,9 @@ import 'mdui/components/layout-main.js'
     引入项目组件
 */
 
-import TopBar from './components/TopBar.vue'
-import Navi from './components/Navi.vue'
-import Container from './components/Container.vue'
+import TopBar from '@/components/TopBar.vue'
+import Navi from '@/components/Navi.vue'
+import Container from '@/components/Container.vue'
 
 </script>
 
