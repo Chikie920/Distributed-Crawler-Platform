@@ -23,6 +23,11 @@ public class NewsServiceImpl implements NewsService {
     }
 
     @Override
+    public List<News> getNewsByTaskName(String taskName) {
+        return newsDao.getNewsByTaskName(taskName);
+    }
+
+    @Override
     public int updateNews(News news) {
         return newsDao.updateNews(news.getId(), news.getTitle(), news.getDate(), news.getContent());
     }

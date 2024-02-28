@@ -3,6 +3,7 @@ package com.chikie.controller;
 
 import com.chikie.entity.News;
 import com.chikie.service.NewsService;
+import org.apache.ibatis.annotations.Select;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,6 +20,12 @@ public class ResourceManageController {
         System.out.println("getAllNews....cnm");
         return newsService.getAllNews();
     } // 获取所有新闻数据
+
+    @GetMapping("/resmag/{taskName}")
+    public List<News> getNewsByTaskName(@PathVariable("taskName") String taskName) {
+        System.out.println("GetNewsByTaskName....");
+        return newsService.getNewsByTaskName(taskName);
+    }
 
     @PutMapping("/resmag")
     public int updateNews(@RequestBody News news) {

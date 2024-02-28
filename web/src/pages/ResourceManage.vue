@@ -1,7 +1,7 @@
 <template>
     <mdui-layout full-height>
         <mdui-layout-main class="resourceManageContainer table-responsive">
-            <h1>Task Information</h1>
+            <h2>Task Information</h2>
 
             <table class="table table-hover table-condensed">
                 <thead>
@@ -25,7 +25,7 @@
 
             <h6 v-if="taskCounts == 0" class="text-center">暂无数据</h6>
 
-            <h1 style="margin-top: 20vh;">Task Data</h1>
+            <h2 style="margin-top: 20vh;">Task Data</h2>
 
             <!-- 新闻展示表格 -->
             <table class="table table-hover table-condensed">

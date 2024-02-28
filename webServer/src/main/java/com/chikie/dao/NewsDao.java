@@ -11,11 +11,14 @@ import java.util.List;
 
 @Repository
 public interface NewsDao {
-    @Select("SELECT * FROM news")
+    @Select("SELECT * FROM news LIMIT 20")
     List<News> getAllNews();
 
     @Select("SELECT * FROM news WHERE id = #{id}")
     News getNewsById(String id);
+
+    @Select("SELECT * FROM news WHERE id LIKE '${taskName}%'")
+    List<News> getNewsByTaskName(String taskName);
 
     @Update("UPDATE news SET title=#{title}, date=#{date}, content=#{content} WHERE id = #{id}")
     int updateNews(@Param("id") String id, @Param("title") String title, @Param("date") String date , @Param("content") String content);
