@@ -1,10 +1,10 @@
 import json
 from scrapy import Request
-from scrapy.spiders import Spider
+from scrapy_redis.spiders import RedisSpider
 from spider.items import SpiderItem
 
 
-class SinaSpider(Spider):
+class SinaSpider(RedisSpider):
     name = "sina"
     # allowed_domains = ["news.sina.com.cn", "finance.sina.com.cn"]
     # start_urls = ["https://feed.mix.sina.com.cn/api/roll/get?pageid=153&lid=2509&k=&num=50&page=1"]
@@ -21,6 +21,8 @@ class SinaSpider(Spider):
     # 美股 2518
     lid_list = [2510, 2511, 2669, 2512, 2513, 2514, 2515, 2516, 2517, 2518];
 
+    redis_key = 'sina:urls'
+
     def start_requests(self):
         
         for lid in self.lid_list:
@@ -29,8 +31,8 @@ class SinaSpider(Spider):
     
     custom_settings = {
         'DOWNLOAD_DELAY' : 2,
-        "ITEM_PIPELINES" : {
-            "spider.pipelines.SinaSpiderPipeline": 300,
+        'ITEM_PIPELINES' : {
+            'scrapy_redis.pipelines.RedisPipeline': 400,
         }
     }
 

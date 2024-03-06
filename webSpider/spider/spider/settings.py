@@ -93,3 +93,12 @@ ROBOTSTXT_OBEY = False
 REQUEST_FINGERPRINTER_IMPLEMENTATION = "2.7"
 TWISTED_REACTOR = "twisted.internet.asyncioreactor.AsyncioSelectorReactor"
 FEED_EXPORT_ENCODING = "utf-8"
+
+######
+#scrapy-redis配置
+######
+REDIS_URL = 'redis://10.160.111.235:6379'
+DUPEFILTER_CLASS = "scrapy_redis.dupefilter.RFPDupeFilter" # 过滤器
+SCHEDULER = "scrapy_redis.scheduler.Scheduler" # 调度
+SCHEDULER_PERSIST = True # 断点续爬
+

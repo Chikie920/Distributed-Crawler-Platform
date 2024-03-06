@@ -138,8 +138,7 @@ function save_operate() { // 提交数据更新
         } else {
             snackbar_fail.value.open = true;
         }
-    })
-        .catch(function (error) {
+    }).catch(function (error) {
             // 请求失败
             console.log(error);
         }); // 获取新闻数据

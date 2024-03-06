@@ -1,14 +1,17 @@
 import scrapy
 from scrapy.linkextractors import LinkExtractor
-from scrapy.spiders import CrawlSpider, Rule
+from scrapy_redis.spiders import RedisCrawlSpider
+from scrapy.spiders import Rule
 
 from spider.items import SpiderItem
 
 
-class IfengSpider(CrawlSpider):
+class IfengSpider(RedisCrawlSpider):
     name = "ifeng"
     # allowed_domains = ["www.ifeng.com"]
-    start_urls = ["https://www.ifeng.com"]
+    # start_urls = ["https://www.ifeng.com"]
+
+    redis_key = 'ifeng:urls'
 
     rules = (
                 Rule(LinkExtractor(allow=r"news.ifeng.com"), callback="parse_item", follow=True),
@@ -21,7 +24,10 @@ class IfengSpider(CrawlSpider):
             )
 
     custom_settings = {
-        'DOWNLOAD_DELAY' : 2
+        'DOWNLOAD_DELAY' : 2,
+        'ITEM_PIPELINES' : {
+            'scrapy_redis.pipelines.RedisPipeline': 400,
+        }
     }
 
     def parse_item(self, response):
