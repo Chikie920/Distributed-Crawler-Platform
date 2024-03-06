@@ -45,7 +45,7 @@
                     <span v-if="host.status == 'ok'" class="badge text-bg-success">正常</span>
                     <span v-if="host.status != 'ok'" class="badge text-bg-danger">离线</span>
                 </td>
-                <td><a @click="updateHost(idx)">编辑</a><a style="margin-left: 1rem;">删除</a></td>
+                <td><a @click="updateHost(idx)">编辑</a><a @click="deleteHost(idx)" style="margin-left: 1rem;">删除</a></td>
             </tr>
         </tbody>
     </table>
@@ -149,15 +149,31 @@ let snackbar_fail = ref(); // 操作失败
 
 
 function get_tasks() {
-    axios.get("http://localhost:6800/listjobs.json?project=spider")
-        .then(function (response) {
-            // console.log(response.data)
-            task_finished_list.value = response.data.finished;
-            task_pending_list.value = response.data.pending;
-            task_running_list.value = response.data.running;
-        }).catch(function (error) {
-            console.error(error)
-        });
+    let project_list = [];
+    let idx;
+    for (idx in hosts) {
+        axios.get("http://localhost:6800/listprojects.json")
+            .then(function (response) {
+                // console.log(response.data.projects)
+                project_list = response.data.projects;
+                let index;
+                for (index in project_list) {
+                    // console.log(project_list[index])
+                    axios.get("http://localhost:6800/listjobs.json?project=" + project_list[index])
+                        .then(function (response) {
+                            // console.log(response.data)
+                            task_finished_list.value = task_finished_list.value.concat(response.data.finished);
+                            task_pending_list.value = task_pending_list.value.concat(response.data.pending);
+                            task_running_list.value = task_running_list.value.concat(response.data.running);
+                        }).catch(function (error) {
+                            console.error(error)
+                        });
+                }
+            }).catch(function (error) {
+                console.error(error)
+            });
+    }
+
 } // 获取任务列表
 
 function get_hosts() {
@@ -187,7 +203,15 @@ function get_hosts() {
 } // 获取主机
 
 function deleteHost(idx) {
-
+    axios.delete("http://localhost:8080/host/" + hosts.value[idx].id).then(function (response) {
+        if (response.data == 1) {
+            snackbar_success.value.open = true;
+        } else {
+            snackbar_fail.value.open = true;
+        }
+    }).catch(function (error) {
+        console.error(error);
+    })
 } // 删除主机
 
 function updateHost(idx) {
@@ -226,8 +250,8 @@ function save_operate() {
         headers: { 'Content-Type': 'application/json' }
     }
     ).then(function (response) {
-        console.log("insert")
-        console.log(response.data)
+        // console.log("insert")
+        // console.log(response.data)
         if (response.data == 1) {
             snackbar_success.value.open = 1;
         } else {
@@ -238,6 +262,26 @@ function save_operate() {
     })
     dialog.value.open = false;
 } // 提交连接
+
+function update_operate() {
+    let data = {
+        "id": id.value,
+        "ip": ip.value,
+        "port": port.value
+    }
+    axios.put("http://localhost:8080/host", data, {
+        headers: { 'Content-Type': 'application/json' }
+    }).then(function (response) {
+        if (response.data == 1) {
+            snackbar_success.value.open = 1;
+        } else {
+            snackbar_fail.value.open = 1;
+        }
+    }).catch(function (error) {
+        console.error(error)
+    })
+    dialog_update.value.open = false;
+}
 
 onMounted(() => {
     get_hosts();

@@ -14,7 +14,6 @@ public class SetingServiceImpl implements SettingService {
     public Setting getSetting() {
         return settingDao.getSetting();
     }
-
     @Override
     public int updateSetting(Setting setting) {
         return settingDao.updateSetting(setting);
