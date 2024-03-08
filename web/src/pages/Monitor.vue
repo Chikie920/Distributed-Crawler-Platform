@@ -135,11 +135,12 @@
 <script setup>
 import 'mdui/components/text-field.js';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, onUnmounted } from 'vue';
 import axios from 'axios';
 import moment from 'moment';
 import 'mdui/components/dialog.js';
 import 'mdui/components/snackbar.js';
+import emitter from '@/tools/emitter.js';
 
 let host_list = ref([]); // 主机列表存放主机状态信息的列表
 let hosts = ref([]); // 存储所有主机ip与port的列表
@@ -152,6 +153,7 @@ let id = ref(""); // 连接的id
 let snackbar_success = ref(); // 操作成功
 let snackbar_fail = ref(); // 操作失败
 let hostAndTask_list = ref([]); // 存放主机以及其项目与任务数据
+let online_host_list = ref([]); // 可用主机列表
 
 function get_hosts() {
     let index;
@@ -167,6 +169,7 @@ function get_hosts() {
                     // console.log(response.data);
                     if (response.data.status == 'ok') {
                         // console.log("ok")
+                        online_host_list.value.push(hosts.value[index])
                         host_list.value.push(response.data)
                     }
                 }).catch(function (error) {
@@ -224,7 +227,7 @@ function get_tasks() {
             });
         hostAndTask_list.value.push(data)
     }
-    // console.log(hostAndTask_list.value);
+    console.log(hostAndTask_list.value);
 
 } // 获取任务列表
 
@@ -330,10 +333,21 @@ function cancel_job(hostIp, hostPort, project, Spiderid) {
     })
 } // 取消任务
 
+function get_online_host() {
+    // console.log(online_host_list.value)
+    emitter.emit('getOnlineHost', online_host_list.value);
+} // 返回在线主机
+
 onMounted(() => {
     get_hosts();
     // get_tasks();
-})
+}); // DOM加载时调用
+
+onUnmounted(() => {
+    get_online_host(); // 触发事件
+}); // DOM被移除时调用
+
+
 
 </script>
 
