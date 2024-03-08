@@ -63,34 +63,42 @@
                 <th>操作</th>
             </tr>
         </thead>
-        <tbody class="table-group-divider">
-            <tr v-for="task, idx in task_running_list" :key="idx">
-                <td>{{ task.project + "." + task.spider }}</td>
+        <tbody class="table-group-divider" v-for="hostAndTask, idx in hostAndTask_list"
+                :key="idx">
+            <tr @click="get_info(task.project, task.spider, task.id)" v-for="task, index in hostAndTask.running" :key="index">
+                <td><u>{{ task.project + "." + task.spider }}</u></td>
                 <td><span class="d-inline-block text-truncate" style="max-width: 100px;">{{ task.id }}</span></td>
-                <td><span class="d-inline-block text-truncate" style="max-width: 180px;">{{ task.start_time }}</span>
+                <td><span class="d-inline-block text-truncate" style="max-width: 180px;">{{ task.start_time
+                        }}</span>
                 </td>
-                <td><span class="d-inline-block text-truncate" style="max-width: 180px;">{{ task.end_time }}</span></td>
+                <td><span class="d-inline-block text-truncate" style="max-width: 180px;">{{ task.end_time }}</span>
+                </td>
                 <td><span class="badge text-bg-success">正在运行</span></td>
-                <td><a>挂起</a><a style="margin-left: 1rem;">终止</a></td>
+                <td><a @click="cancel_job(hostAndTask.ip, hostAndTask.port, task.project, task.id)">终止</a></td>
             </tr>
-            <tr v-for="task, idx in task_pending_list" :key="idx">
-                <td>{{ task.project + "." + task.spider }}</td>
+            <tr @click="get_info(task.project, task.spider, task.id)" v-for="task, index in hostAndTask.pending" :key="index">
+                <td><u>{{ task.project + "." + task.spider }}</u></td>
                 <td><span class="d-inline-block text-truncate" style="max-width: 100px;">{{ task.id }}</span></td>
-                <td><span class="d-inline-block text-truncate" style="max-width: 180px;">{{ task.start_time }}</span>
+                <td><span class="d-inline-block text-truncate" style="max-width: 180px;">{{ task.start_time
+                        }}</span>
                 </td>
-                <td><span class="d-inline-block text-truncate" style="max-width: 180px;">{{ task.end_time }}</span></td>
+                <td><span class="d-inline-block text-truncate" style="max-width: 180px;">{{ task.end_time }}</span>
+                </td>
                 <td><span class="badge text-bg-secondary">挂起</span></td>
-                <td><a>继续</a><a style="margin-left: 1rem;">删除</a></td>
+                <td><a @click="reboot_job(hostAndTask.ip, hostAndTask.port, task.project, task.spider, task.id)">继续</a></td>
             </tr>
-            <tr v-for="task, idx in task_finished_list" :key="idx">
-                <td>{{ task.project + "." + task.spider }}</td>
+            <tr v-for="task, index in hostAndTask.finished" :key="index">
+                <td @click="get_info(task.project, task.spider, task.id)"><u>{{ task.project + "." + task.spider }}</u></td>
                 <td><span class="d-inline-block text-truncate" style="max-width: 100px;">{{ task.id }}</span></td>
-                <td><span class="d-inline-block text-truncate" style="max-width: 180px;">{{ task.start_time }}</span>
+                <td><span class="d-inline-block text-truncate" style="max-width: 180px;">{{ task.start_time
+                        }}</span>
                 </td>
-                <td><span class="d-inline-block text-truncate" style="max-width: 180px;">{{ task.end_time }}</span></td>
+                <td><span class="d-inline-block text-truncate" style="max-width: 180px;">{{ task.end_time }}</span>
+                </td>
                 <td><span class="badge text-bg-danger">运行结束</span></td>
-                <td><a>启动</a><a style="margin-left: 1rem;">删除</a></td>
+                <td><a @click="reboot_job(hostAndTask.ip, hostAndTask.port, task.project, task.spider, task.id)">启动</a></td>
             </tr>
+
         </tbody>
     </table>
 
@@ -133,12 +141,9 @@ import moment from 'moment';
 import 'mdui/components/dialog.js';
 import 'mdui/components/snackbar.js';
 
-let task_running_list = ref([]); // 正在运行任务列表
-let task_pending_list = ref([]); // 暂停任务列表
-let task_finished_list = ref([]); // 运行结束任务列表
 let host_list = ref([]); // 主机列表存放主机状态信息的列表
 let hosts = ref([]); // 存储所有主机ip与port的列表
-let info = ref(""); // 日志信息
+let info = ref("******日志信息******"); // 日志信息
 let dialog = ref(); // 新建连接对话框
 let dialog_update = ref(); // 更新连接对话框
 let ip = ref(""); // 连接的ip
@@ -146,41 +151,14 @@ let port = ref(""); // 连接的port
 let id = ref(""); // 连接的id
 let snackbar_success = ref(); // 操作成功
 let snackbar_fail = ref(); // 操作失败
-
-
-function get_tasks() {
-    let project_list = [];
-    let idx;
-    for (idx in hosts) {
-        axios.get("http://localhost:6800/listprojects.json")
-            .then(function (response) {
-                // console.log(response.data.projects)
-                project_list = response.data.projects;
-                let index;
-                for (index in project_list) {
-                    // console.log(project_list[index])
-                    axios.get("http://localhost:6800/listjobs.json?project=" + project_list[index])
-                        .then(function (response) {
-                            // console.log(response.data)
-                            task_finished_list.value = task_finished_list.value.concat(response.data.finished);
-                            task_pending_list.value = task_pending_list.value.concat(response.data.pending);
-                            task_running_list.value = task_running_list.value.concat(response.data.running);
-                        }).catch(function (error) {
-                            console.error(error)
-                        });
-                }
-            }).catch(function (error) {
-                console.error(error)
-            });
-    }
-
-} // 获取任务列表
+let hostAndTask_list = ref([]); // 存放主机以及其项目与任务数据
 
 function get_hosts() {
     let index;
     axios.get("http://localhost:8080/host").then(function (response) {
         hosts.value = response.data;
-        // console.log(hosts)
+        // console.log("######")
+        // console.log(hosts.value[0])
         for (index in hosts.value) {
             // console.log(hosts[index])
             let url = "http://" + hosts.value[index].ip + ":" + hosts.value[index].port + "/daemonstatus.json"
@@ -197,10 +175,59 @@ function get_hosts() {
                     host_list.value.push({ finished: '未知', node_name: '未知', pending: '未知', running: '未知', status: 'breakdown' })
                 });
         }
+        get_tasks(); // 获取主机任务
     }).catch(function (error) {
         console.error(error)
     });
 } // 获取主机
+
+function get_tasks() {
+    let project_list = [];
+    let idx;
+    // console.log("******")
+    // console.log(hosts.value[0])
+    for (idx in hosts.value) {
+        // console.log(hosts.value[idx])
+        let ip = hosts.value[idx].ip;
+        let port = hosts.value[idx].port;
+        let data = {}; // 存放主机及其任务的临时对象
+        axios.get("http://" + hosts.value[idx].ip + ":" + hosts.value[idx].port + "/listprojects.json") // 获取主机项目
+            .then(function (response) {
+                // console.log(response.data.projects)
+                project_list = response.data.projects;
+                let index;
+                for (index in project_list) {
+                    // console.log(idx)
+                    // let url = "http://"+ip+":"+port+"/listjobs.json?project=" + project_list[index];
+                    // console.log(url);
+                    axios.get("http://" + ip + ":" + port + "/listjobs.json?project=" + project_list[index]) // 获取主机项目内任务
+                        .then(function (response) {
+                            // console.log(response.data)
+                            // task_finished_list.value = task_finished_list.value.concat(response.data.finished);
+                            // task_pending_list.value = task_pending_list.value.concat(response.data.pending);
+                            // task_running_list.value = task_running_list.value.concat(response.data.running);
+                            // console.log(task_finished_list.value);
+                            // console.log(task_pending_list.value);
+                            // console.log(task_running_list.value);
+                            
+                            data['ip'] = ip;
+                            data['port'] = port;
+                            data['finished'] = response.data.finished;
+                            data['pending'] = response.data.pending;
+                            data['running'] = response.data.running;
+                        }).catch(function (error) {
+                            console.error(error)
+                        });
+                }
+            }).catch(function (error) {
+                console.error(error)
+            });
+        hostAndTask_list.value.push(data)
+    }
+    // console.log(hostAndTask_list.value);
+
+} // 获取任务列表
+
 
 function deleteHost(idx) {
     axios.delete("http://localhost:8080/host/" + hosts.value[idx].id).then(function (response) {
@@ -227,8 +254,8 @@ function addHost() {
     dialog.value.open = true;
 } // 新建主机
 
-function get_info() {
-    axios.get('/logs/spider/baidu/2858cb9bdb6711ee8b74c8b29ba4ee5d.log', {
+function get_info(project, spider, id) {
+    axios.get('/logs/' + project + '/' + spider + '/' + id + '.log', {
     }).then(function (response) {
         // console.log(response.data);
         info.value = response.data;
@@ -281,12 +308,31 @@ function update_operate() {
         console.error(error)
     })
     dialog_update.value.open = false;
-}
+} // 更新连接操作
+
+function reboot_job(hostIp, hostPort, project, spider, Spiderid) {
+    axios.post("http://"+hostIp+":"+hostPort+"/schedule.json", 'project='+project+"&spider="+spider+"&jobid="+Spiderid, {
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+    }).then(function (response){
+        // console.log(response.data)
+    }).then(function (error){
+        console.error(error);
+    })
+} // 重启任务
+
+function cancel_job(hostIp, hostPort, project, Spiderid) {
+    axios.post("http://"+hostIp+":"+hostPort+"/cancel.json", 'project='+project+"&job="+Spiderid, {
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+    }).then(function (response){
+        console.log(response.data)
+    }).then(function (error){
+        console.error(error);
+    })
+} // 取消任务
 
 onMounted(() => {
     get_hosts();
-    get_tasks();
-    get_info();
+    // get_tasks();
 })
 
 </script>
