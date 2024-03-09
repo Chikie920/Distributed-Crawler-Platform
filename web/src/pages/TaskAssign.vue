@@ -11,13 +11,13 @@
     </mdui-select>
     <div v-show="select_type == '1'">
         <h2 style="margin-top: 1rem;">主机选择</h2>
-        <mdui-select variant="outlined" value="0" style="width: 20%; display: block; margin-top: 1rem;">
+        <mdui-select variant="outlined" :value="0" style="width: 20%; display: block; margin-top: 1rem;">
             <mdui-menu-item v-for="host, index in available_host_list" :key="index" :value="index">
                 #{{ host.ip + ":" + host.port }}
             </mdui-menu-item>
         </mdui-select>
-        <h2 style="margin-top: 1rem;">模板选择</h2>
-        <mdui-select variant="outlined" value="0" style="width: 15%; margin-top: 1rem; display: block;">
+        <h2 style="margin-top: 2rem;">模板选择</h2>
+        <mdui-select variant="outlined" :value="0" style="width: 15%; margin-top: 1rem; display: block;">
             <mdui-menu-item v-for="job, index in job_list" :key="index" :value="index">
                 #{{ job }}
             </mdui-menu-item>
