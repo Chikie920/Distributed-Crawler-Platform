@@ -63,9 +63,9 @@
                 <th>操作</th>
             </tr>
         </thead>
-        <tbody class="table-group-divider" v-for="hostAndTask, idx in hostAndTask_list"
-                :key="idx">
-            <tr @click="get_info(task.project, task.spider, task.id)" v-for="task, index in hostAndTask.running" :key="index">
+        <tbody class="table-group-divider" v-for="hostAndTask, idx in hostAndTask_list" :key="idx">
+            <tr @click="get_info(task.project, task.spider, task.id)" v-for="task in hostAndTask.running"
+                :key="task.id">
                 <td><u>{{ task.project + "." + task.spider }}</u></td>
                 <td><span class="d-inline-block text-truncate" style="max-width: 100px;">{{ task.id }}</span></td>
                 <td><span class="d-inline-block text-truncate" style="max-width: 180px;">{{ task.start_time
@@ -76,7 +76,8 @@
                 <td><span class="badge text-bg-success">正在运行</span></td>
                 <td><a @click="cancel_job(hostAndTask.ip, hostAndTask.port, task.project, task.id)">终止</a></td>
             </tr>
-            <tr @click="get_info(task.project, task.spider, task.id)" v-for="task, index in hostAndTask.pending" :key="index">
+            <tr @click="get_info(task.project, task.spider, task.id)" v-for="task in hostAndTask.pending"
+                :key="task.id">
                 <td><u>{{ task.project + "." + task.spider }}</u></td>
                 <td><span class="d-inline-block text-truncate" style="max-width: 100px;">{{ task.id }}</span></td>
                 <td><span class="d-inline-block text-truncate" style="max-width: 180px;">{{ task.start_time
@@ -85,10 +86,12 @@
                 <td><span class="d-inline-block text-truncate" style="max-width: 180px;">{{ task.end_time }}</span>
                 </td>
                 <td><span class="badge text-bg-secondary">挂起</span></td>
-                <td><a @click="reboot_job(hostAndTask.ip, hostAndTask.port, task.project, task.spider, task.id)">继续</a></td>
+                <td><a @click="reboot_job(hostAndTask.ip, hostAndTask.port, task.project, task.spider, task.id)">继续</a>
+                </td>
             </tr>
-            <tr v-for="task, index in hostAndTask.finished" :key="index">
-                <td @click="get_info(task.project, task.spider, task.id)"><u>{{ task.project + "." + task.spider }}</u></td>
+            <tr v-for="task in hostAndTask.finished" :key="task.id">
+                <td @click="get_info(task.project, task.spider, task.id)"><u>{{ task.project + "." + task.spider }}</u>
+                </td>
                 <td><span class="d-inline-block text-truncate" style="max-width: 100px;">{{ task.id }}</span></td>
                 <td><span class="d-inline-block text-truncate" style="max-width: 180px;">{{ task.start_time
                         }}</span>
@@ -96,9 +99,9 @@
                 <td><span class="d-inline-block text-truncate" style="max-width: 180px;">{{ task.end_time }}</span>
                 </td>
                 <td><span class="badge text-bg-danger">运行结束</span></td>
-                <td><a @click="reboot_job(hostAndTask.ip, hostAndTask.port, task.project, task.spider, task.id)">启动</a></td>
+                <td><a @click="reboot_job(hostAndTask.ip, hostAndTask.port, task.project, task.spider, task.id)">启动</a>
+                </td>
             </tr>
-
         </tbody>
     </table>
 
@@ -135,7 +138,7 @@
 <script setup>
 import 'mdui/components/text-field.js';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import { ref, onMounted, onUnmounted } from 'vue';
+import { ref, onMounted, onUnmounted, toRaw } from 'vue';
 import axios from 'axios';
 import moment from 'moment';
 import 'mdui/components/dialog.js';
@@ -160,77 +163,76 @@ function get_hosts() {
     axios.get("http://localhost:8080/host").then(function (response) {
         hosts.value = response.data;
         // console.log("######")
-        // console.log(hosts.value[0])
+        // console.log(hosts.value[0].ip)
         for (index in hosts.value) {
-            // console.log(hosts[index])
-            let url = "http://" + hosts.value[index].ip + ":" + hosts.value[index].port + "/daemonstatus.json"
-            axios.get(url)
-                .then(function (response) {
-                    // console.log(response.data);
-                    if (response.data.status == 'ok') {
-                        // console.log("ok")
-                        online_host_list.value.push(hosts.value[index])
-                        host_list.value.push(response.data)
-                    }
-                }).catch(function (error) {
-                    // console.error(error)
-                    // console.log("error")
-                    host_list.value.push({ finished: '未知', node_name: '未知', pending: '未知', running: '未知', status: 'breakdown' })
-                });
+            // console.log(hosts.value[index]);
+            let hostId = hosts.value[index].id;
+            let hostIp = hosts.value[index].ip;
+            let hostPort = hosts.value[index].port;
+            let url = "http://" + hostIp + ":" + hostPort + "/daemonstatus.json";
+            // console.log(url)
+            axios.get(url, {
+                timeout: 1000,
+            }).then(function (response) {
+                // console.log(response.data);
+                if (response.data.status == 'ok') {
+                    // console.log("ok");
+                    // console.log(hostIp + " " + hostPort);
+                    get_tasks(hostIp, hostPort); // 获取主机任务
+                    online_host_list.value.push({ id: hostId, ip: hostIp, port: hostPort });
+                    host_list.value.push(response.data)
+                }
+            }).catch(function (error) {
+                // console.error(error)
+                // console.log("error")
+                host_list.value.push({ finished: '未知', node_name: '未知', pending: '未知', running: '未知', status: 'breakdown' })
+            });
         }
-        get_tasks(); // 获取主机任务
     }).catch(function (error) {
         console.error(error)
     });
+    get_tasks();
 } // 获取主机
 
-function get_tasks() {
+function get_tasks(hostIp, hostPort) {
     let project_list = [];
-    let idx;
     // console.log("******")
-    // console.log(hosts.value[0])
-    for (idx in hosts.value) {
-        // console.log(hosts.value[idx])
-        let ip = hosts.value[idx].ip;
-        let port = hosts.value[idx].port;
-        let data = {}; // 存放主机及其任务的临时对象
-        axios.get("http://" + hosts.value[idx].ip + ":" + hosts.value[idx].port + "/listprojects.json") // 获取主机项目
-            .then(function (response) {
-                // console.log(response.data.projects)
-                project_list = response.data.projects;
-                let index;
-                for (index in project_list) {
-                    // console.log(idx)
-                    // let url = "http://"+ip+":"+port+"/listjobs.json?project=" + project_list[index];
-                    // console.log(url);
-                    axios.get("http://" + ip + ":" + port + "/listjobs.json?project=" + project_list[index]) // 获取主机项目内任务
-                        .then(function (response) {
-                            // console.log(response.data)
-                            // task_finished_list.value = task_finished_list.value.concat(response.data.finished);
-                            // task_pending_list.value = task_pending_list.value.concat(response.data.pending);
-                            // task_running_list.value = task_running_list.value.concat(response.data.running);
-                            // console.log(task_finished_list.value);
-                            // console.log(task_pending_list.value);
-                            // console.log(task_running_list.value);
-                            
-                            data['ip'] = ip;
-                            data['port'] = port;
-                            data['finished'] = response.data.finished;
-                            data['pending'] = response.data.pending;
-                            data['running'] = response.data.running;
-                        }).catch(function (error) {
-                            console.error(error)
-                        });
-                }
-            }).catch(function (error) {
-                console.error(error)
-            });
-        hostAndTask_list.value.push(data)
-    }
-    console.log(hostAndTask_list.value);
-
+    // console.log(hostIp + " " + hostPort)
+    let data = {}; // 存放主机及其任务的临时对象
+    axios.get("http://" + hostIp + ":" + hostPort + "/listprojects.json") // 获取主机项目
+        .then(function (response) {
+            // console.log(response.data.projects)
+            project_list = response.data.projects;
+            let index;
+            for (index in project_list) {
+                // console.log(idx)
+                // let url = "http://"+ip+":"+port+"/listjobs.json?project=" + project_list[index];
+                // console.log(url);
+                axios.get("http://" + hostIp + ":" + hostPort + "/listjobs.json?project=" + project_list[index]) // 获取主机项目内任务
+                    .then(function (response) {
+                        // console.log(response.data)
+                        // task_finished_list.value = task_finished_list.value.concat(response.data.finished);
+                        // task_pending_list.value = task_pending_list.value.concat(response.data.pending);
+                        // task_running_list.value = task_running_list.value.concat(response.data.running);
+                        // console.log(task_finished_list.value);
+                        // console.log(task_pending_list.value);
+                        // console.log(task_running_list.value);
+                        data['ip'] = hostIp;
+                        data['port'] = hostPort;
+                        data['finished'] = response.data.finished;
+                        data['pending'] = response.data.pending;
+                        data['running'] = response.data.running;
+                        hostAndTask_list.value.push(data);
+                        // console.log("###########")
+                        // console.log(hostAndTask_list.value)
+                    }).catch(function (error) {
+                        console.error(error)
+                    });
+            }
+        }).catch(function (error) {
+            console.error(error)
+        });
 } // 获取任务列表
-
 
 function deleteHost(idx) {
     axios.delete("http://localhost:8080/host/" + hosts.value[idx].id).then(function (response) {
@@ -314,21 +316,21 @@ function update_operate() {
 } // 更新连接操作
 
 function reboot_job(hostIp, hostPort, project, spider, Spiderid) {
-    axios.post("http://"+hostIp+":"+hostPort+"/schedule.json", 'project='+project+"&spider="+spider+"&jobid="+Spiderid, {
+    axios.post("http://" + hostIp + ":" + hostPort + "/schedule.json", 'project=' + project + "&spider=" + spider + "&jobid=" + Spiderid, {
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
-    }).then(function (response){
+    }).then(function (response) {
         // console.log(response.data)
-    }).then(function (error){
+    }).then(function (error) {
         console.error(error);
     })
 } // 重启任务
 
 function cancel_job(hostIp, hostPort, project, Spiderid) {
-    axios.post("http://"+hostIp+":"+hostPort+"/cancel.json", 'project='+project+"&job="+Spiderid, {
+    axios.post("http://" + hostIp + ":" + hostPort + "/cancel.json", 'project=' + project + "&job=" + Spiderid, {
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
-    }).then(function (response){
+    }).then(function (response) {
         console.log(response.data)
-    }).then(function (error){
+    }).then(function (error) {
         console.error(error);
     })
 } // 取消任务
