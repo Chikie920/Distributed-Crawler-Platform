@@ -4,24 +4,25 @@
         <mdui-radio value="1">自定义创建</mdui-radio>
     </mdui-radio-group> -->
     <h2>创建方式</h2>
-    <mdui-select @change="create_type_change" variant="outlined" :value="select_type"
-        style="width: 15%; display: block; margin-top: 1rem;">
+    <!-- <mdui-select @change="create_type_change" variant="outlined" :value="select_type"
+        style="width: 20%; display: block; margin-top: 1rem;">
         <mdui-menu-item value="1">#使用模板创建任务</mdui-menu-item>
         <mdui-menu-item value="2">#自定义创建任务</mdui-menu-item>
-    </mdui-select>
+    </mdui-select> -->
+    <select @change="create_type_change" class="form-select" style="width: 20%; display: block; margin-top: 1rem;">
+            <option value="1">#使用模板创建任务</option>
+            <option value="2">#自定义创建任务</option>
+        </select>
     <div v-show="select_type == '1'">
         <h2 style="margin-top: 1rem;">主机选择</h2>
-        <mdui-select variant="outlined" :value="0" style="width: 20%; display: block; margin-top: 1rem;">
-            <mdui-menu-item v-for="host, index in available_host_list" :key="index" :value="index">
-                #{{ host.ip + ":" + host.port }}
-            </mdui-menu-item>
-        </mdui-select>
+        <select class="form-select" style="width: 25%; display: block; margin-top: 1rem;">
+            <option v-for="host, index in available_host_list" :key="index" :value="host.ip + ':' + host.port">#{{
+        host.ip + ':' + host.port }}</option>
+        </select>
         <h2 style="margin-top: 2rem;">模板选择</h2>
-        <mdui-select variant="outlined" :value="0" style="width: 15%; margin-top: 1rem; display: block;">
-            <mdui-menu-item v-for="job, index in job_list" :key="index" :value="index">
-                #{{ job }}
-            </mdui-menu-item>
-        </mdui-select>
+        <select class="form-select" style="width: 15%; margin-top: 1rem; display: block;">
+            <option v-for="job, index in job_list" :key="index" :value="index">#{{ job }}</option>
+        </select>
     </div>
 
     <div v-show="select_type == '2'">
@@ -30,14 +31,14 @@
         <mdui-text-field style="width: 40%; margin-top: 1rem; display: block;" label="目标网址"></mdui-text-field>
 
         <h2 style="margin-top: 1rem;">主机选择</h2>
-        <mdui-select variant="outlined" :value="0" style="width: 20%; display: block; margin-top: 1rem;"
-            v-for="host, index in available_host_list" :key="index">
-            <mdui-menu-item :value="index">#{{ host.ip + ":" + host.port }}</mdui-menu-item>
-        </mdui-select>
+        <select class="form-select" style="width: 25%; display: block; margin-top: 1rem;">
+            <option v-for="host, index in available_host_list" :key="index" :value="host.ip + ':' + host.port">#{{
+        host.ip + ':' + host.port }}</option>
+        </select>
 
     </div>
 
-    <mdui-button variant="outlined" style="margin-top: 1rem;">提交</mdui-button>
+    <mdui-button variant="outlined" style="margin-top: 2rem;">提交</mdui-button>
 </template>
 
 <script setup>
@@ -45,7 +46,6 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import 'mdui/components/radio-group.js';
 import 'mdui/components/radio.js';
 import 'mdui/components/text-field.js';
-import 'mdui/components/select.js';
 import 'mdui/components/select.js';
 import 'mdui/components/menu-item.js';
 import 'mdui/components/button.js';
@@ -68,7 +68,7 @@ emitter.on('getOnlineHost', (res) => {
     // console.log(value);
     // available_host_list.value = toRaw(value)[0];
     // console.log(JSON.parse(JSON.stringify(res)))
-    available_host_list.value = JSON.parse(JSON.stringify(res));
+    available_host_list.value = res;
     // console.log(available_host_list.value);
 });
 
@@ -79,6 +79,7 @@ onMounted(() => {
 
 <style scoped>
 mdui-text-field::part(container) {
-    background-color: #E0E0E0;
+    /* background-color: #E0E0E0; */
+    background-color: #fafdfd;
 }
 </style>
