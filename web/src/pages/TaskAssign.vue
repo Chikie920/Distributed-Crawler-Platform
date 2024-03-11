@@ -77,6 +77,7 @@ import 'mdui/components/switch.js';
 import { ref, onMounted } from 'vue';
 import emitter from '../tools/emitter.js';
 import axios from 'axios';
+import queryString from 'query-string';
 
 let select_type = ref("1"); // 选择创建方式
 let available_host_list = ref([]); // 在线主机列表
@@ -129,17 +130,22 @@ function create_job_by_template() {
 } // 根据模板创建任务
 
 function create_job_custom() {
-    console.log(hostUrl.value);
+    // console.log(hostUrl.value);
     let data = {
         'name': job_name.value,
         'url': job_url.value,
         'delay': job_delay.value,
         'cookie': job_cookie.value,
         'driver_open': driver_open.value,
-        'hostUrl': hostUrl.value
     };
-    axios.post('http://127.0.0.1:2233', data).then(res => {
-        console.log(res.data);
+    axios.post('http://127.0.0.1:2233', queryString.stringify(data), {
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+    }).then(function (response) {
+        if (response.data == 'ok') {
+            snackbar_success.value.open = true;
+        } else {
+            snackbar_fail.value.open = true;
+        }
     }).catch(error => {
         console.error(error);
     })
