@@ -37,12 +37,17 @@
         </div>
         <div v-show="advanced_option">
             <mdui-text-field v-model="job_delay" style="width: 20%; margin-top: 1rem; display: block;"
-                label="采集延迟/s"></mdui-text-field>
-            <mdui-text-field v-model="job_cookie" rows="3" style="width: 40%; margin-top: 1rem; display: block;"
-                label="COOKIE设置">
+                label="采集延迟/s(默认为2)"></mdui-text-field>
+            <mdui-text-field v-model="job_request" style="width: 20%; margin-top: 1rem; display: block;"
+                label="并发请求参数(默认100)"></mdui-text-field>
+            <!-- <mdui-text-field v-model="job_cookie" rows="3" style="width: 40%; margin-top: 1rem; display: block;"
+                label="目标网站COOKIE设置">
+            </mdui-text-field> -->
+            <mdui-text-field v-model="job_rules" rows="3" style="width: 40%; margin-top: 1rem; display: block;"
+                label="链接提取规则Rules(输入目标Url关键字, 请用英文逗号隔开)">
             </mdui-text-field>
             <div style="display: flex;text-align: center;margin-top: 1rem;">
-                <p style="margin: auto 0;">启用ChromeDriver代理访问</p>
+                <p style="margin: auto 0;">启用ChromeDriver代理访问(会影响采集速度)</p>
                 <mdui-switch @change="change_use_driver" style="margin-left: 1rem;"></mdui-switch>
             </div>
         </div>
@@ -92,8 +97,10 @@ let jobValue = ref(); // 选择模板控件
 let job_name = ref(); // 任务名称
 let job_url = ref(); // 任务目标网址
 let job_delay = ref(); // 任务延迟
-let job_cookie = ref(); // 任务cookie
+// let job_cookie = ref(); // 任务cookie
 let driver_open = ref(false); // 是否开启浏览器代理
+let job_request = ref(); // 并发请求参数
+let job_rules = ref(); // 连接提取规则
 
 function create_type_change() {
     if (select_type.value == "1") {
@@ -135,10 +142,12 @@ function create_job_custom() {
         'name': job_name.value,
         'url': job_url.value,
         'delay': job_delay.value,
-        'cookie': job_cookie.value,
+        // 'cookie': job_cookie.value,
         'driver_open': driver_open.value,
+        'request_counts': job_request.value,
+        'rules': job_rules.value
     };
-    axios.post('http://127.0.0.1:2233', queryString.stringify(data), {
+    axios.post('http://'+hostUrl.value.split(':')[0]+':2233', queryString.stringify(data), {
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
     }).then(function (response) {
         if (response.data == 'ok') {
