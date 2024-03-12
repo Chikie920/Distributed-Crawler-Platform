@@ -323,6 +323,17 @@ function reboot_job(hostIp, hostPort, project, spider, Spiderid) {
     }).then(function (error) {
         console.error(error);
     })
+
+    axios.put('http://127.0.0.1:8080/task/' + spider).then(response => {
+        console.log("put")
+        if (response.data == 1) {
+            snackbar_success.value.open = true;
+        } else {
+            snackbar_fail.value.open = true;
+        }
+    }).catch(error => {
+        console.error(error);
+    });
 } // 重启任务
 
 function cancel_job(hostIp, hostPort, project, Spiderid) {
