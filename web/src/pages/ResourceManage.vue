@@ -17,7 +17,7 @@
                         <td @click="selectTask(task.taskName)"><u>{{ task.taskName }}</u></td>
                         <td>{{ task.createTime }}</td>
                         <td>{{ task.runTimes }}</td>
-                        <td>{{ task.dataCounts }}</td>
+                        <td>{{ dataCounts_list[idx] }}</td>
                     </tr>
 
                 </tbody>
@@ -108,6 +108,7 @@ let snackbar_success = ref() // 操作结果提示消息条-操作成功
 let snackbar_fail = ref() // 操作结果提示消息条-操作失败
 let taskCounts = ref(0); // 记录任务个数
 let dataCounts = ref(0); // 记录数据个数
+let dataCounts_list = ref([]); // 数据数量列表
 
 function modify_click(idx) { // 数据编辑操作点击事件
     // console.log(modify.value[idx])
@@ -139,9 +140,9 @@ function save_operate() { // 提交数据更新
             snackbar_fail.value.open = true;
         }
     }).catch(function (error) {
-            // 请求失败
-            console.log(error);
-        }); // 获取新闻数据
+        // 请求失败
+        console.log(error);
+    }); // 获取新闻数据
     dialog.value.open = false;
 }
 
@@ -163,7 +164,7 @@ function delete_operate(idx) {
 }
 
 function selectTask(taskName) {
-    axios.get('http://localhost:8080/resmag/'+taskName)
+    axios.get('http://localhost:8080/resmag/' + taskName)
         .then(function (response) {
             // 请求成功
             news_list.value = response.data;
@@ -194,7 +195,19 @@ onMounted(() => { // 钩子函数，页面挂载到DOM完成后调用
             // 请求成功
             task_list.value = response.data;
             taskCounts.value = task_list.value.length;
-            // console.log(news_list.value[0].id)
+            let i;
+            for (i = 0; i < task_list.value.length; ++i) {
+                axios.get('http://localhost:8080/resmag/' + task_list.value[i].taskName)
+                    .then(function (response) {
+                        // 请求成功
+                        dataCounts_list.value.push(response.data.length)
+                        // console.log(news_list.value[0].id)
+                    })
+                    .catch(function (error) {
+                        // 请求失败
+                        console.log(error);
+                    }); // 根据任务名称获取新闻数据
+            }
         })
         .catch(function (error) {
             // 请求失败

@@ -8,7 +8,7 @@
     </select>
     <div v-show="select_type == '1'">
         <h2 style="margin-top: 1rem;">主机选择</h2>
-        <select ref="hostValue" @change="select_host" class="form-select"
+        <select ref="hostValue_template" @change="select_host_template" class="form-select"
             style="width: 25%; display: block; margin-top: 1rem;">
             <option selected>选择主机</option>
             <option v-for="host, index in available_host_list" :key="index" :value="host.ip + ':' + host.port">{{
@@ -83,6 +83,7 @@ import { ref, onMounted } from 'vue';
 import emitter from '../tools/emitter.js';
 import axios from 'axios';
 import queryString from 'query-string';
+import moment from 'moment/moment.js';
 
 let select_type = ref("1"); // 选择创建方式
 let available_host_list = ref([]); // 在线主机列表
@@ -91,6 +92,7 @@ let advanced_option = ref(false); // 高级设置开关
 let snackbar_success = ref(); // 操作结果提示消息条-操作成功
 let snackbar_fail = ref(); // 操作结果提示消息条-操作失败
 let hostValue = ref(); // 选择主机控件
+let hostValue_template = ref(); // 同上
 let hostUrl = ref(); // 目标主机url
 let job = ref(); // 目标作业
 let jobValue = ref(); // 选择模板控件
@@ -101,6 +103,8 @@ let job_delay = ref(); // 任务延迟
 let driver_open = ref(false); // 是否开启浏览器代理
 let job_request = ref(); // 并发请求参数
 let job_rules = ref(); // 连接提取规则
+let task_list = ref(); // 所有任务列表
+let taskName_list = ref([]); // 所有任务名称
 
 function create_type_change() {
     if (select_type.value == "1") {
@@ -133,7 +137,41 @@ function create_job_by_template() {
         }
     }).then(function (error) {
         console.error(error);
-    })
+    });
+
+    let index = taskName_list.value.indexOf(job_dict[job.value])
+    if (index != -1) { // 判断是否以及有重名任务
+        axios.put('http://127.0.0.1:8080/task', {
+            'taskName': job_dict[job.value],
+            'createTime': task_list.value[index].create_time,
+            'runTimes': parseInt(task_list.value[index].runTimes) + 1
+        }, {
+            headers: { 'Content-Type': 'application/json' },
+        }).then(response => {
+            if (response.data == 1) {
+                snackbar_success.value.open = true;
+            } else {
+                snackbar_fail.value.open = true;
+            }
+        }).catch(error => {
+            console.error(error);
+        });
+    } else {
+        let createTime = moment().format('YYYY-MM-DD');
+        axios.post('http://127.0.0.1:8080/task', {
+            'taskName': job_dict[job.value],
+            'createTime': createTime,
+            'runTimes': 1
+        }, {
+            headers: { 'Content-Type': 'application/json' }
+        }).then(response => {
+            console.log(response.data);
+        }).catch(error => {
+            console.error(error);
+        })
+    }
+
+
 } // 根据模板创建任务
 
 function create_job_custom() {
@@ -147,7 +185,7 @@ function create_job_custom() {
         'request_counts': job_request.value,
         'rules': job_rules.value
     };
-    axios.post('http://'+hostUrl.value.split(':')[0]+':2233', queryString.stringify(data), {
+    axios.post('http://' + hostUrl.value.split(':')[0] + ':2233', queryString.stringify(data), {
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
     }).then(function (response) {
         if (response.data == 'ok') {
@@ -162,6 +200,12 @@ function create_job_custom() {
 
 function select_host() {
     hostUrl.value = hostValue.value.selectedOptions[0].text;
+    console.log(hostUrl.value)
+} // 主机选择事件
+
+function select_host_template() {
+    hostUrl.value = hostValue_template.value.selectedOptions[0].text;
+    console.log(hostUrl.value)
 } // 主机选择事件
 
 function select_job() {
@@ -177,15 +221,36 @@ function change_use_driver() {
 } // 是否使用浏览器代理
 
 
+function get_all_tasks() {
+    axios.get('http://localhost:8080/task')
+        .then(function (response) {
+            // 请求成功
+            task_list.value = response.data;
+            // console.log(task_list.value)
+            let i;
+            for (i = 0; i < task_list.value.length; ++i) {
+                // console.log(task_list.value[i].taskName)
+                taskName_list.value.push(task_list.value[i].taskName);
+            }
+            // console.log(taskName_list.value);
+        })
+        .catch(function (error) {
+            // 请求失败
+            console.log(error);
+        }); // 获取任务数据
+} // 获取全部任务
+
 emitter.on('getOnlineHost', (res) => {
     // console.log(value);
     // available_host_list.value = toRaw(value)[0];
     // console.log(JSON.parse(JSON.stringify(res)))
     available_host_list.value = res;
     // console.log(available_host_list.value);
+
 }); // 绑定事件，获取可用主机列表
 
 onMounted(() => {
+    get_all_tasks();
 });
 
 </script>
