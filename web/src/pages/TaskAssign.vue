@@ -202,7 +202,7 @@ function create_job_custom() {
         // console.log("************")
         console.log(parseInt(task_list.value[index].runTimes) + 1)
         axios.put('http://127.0.0.1:8080/task/' + job_name.value).then(response => {
-            console.log("put")
+            // console.log("put")
             if (response.data == 1) {
                 snackbar_success.value.open = true;
             } else {
@@ -224,7 +224,7 @@ function create_job_custom() {
         }).catch(error => {
             console.error(error);
         })
-    }
+    } // 更新运行次数
 } // 提交自定义任务
 
 function select_host() {

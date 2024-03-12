@@ -325,7 +325,7 @@ function reboot_job(hostIp, hostPort, project, spider, Spiderid) {
     })
 
     axios.put('http://127.0.0.1:8080/task/' + spider).then(response => {
-        console.log("put")
+        // console.log("put")
         if (response.data == 1) {
             snackbar_success.value.open = true;
         } else {
@@ -333,7 +333,7 @@ function reboot_job(hostIp, hostPort, project, spider, Spiderid) {
         }
     }).catch(error => {
         console.error(error);
-    });
+    }); // 更新运行次数
 } // 重启任务
 
 function cancel_job(hostIp, hostPort, project, Spiderid) {

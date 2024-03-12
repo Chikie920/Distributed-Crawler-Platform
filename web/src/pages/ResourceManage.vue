@@ -17,7 +17,7 @@
                         <td @click="selectTask(task.taskName)"><u>{{ task.taskName }}</u></td>
                         <td>{{ task.createTime }}</td>
                         <td>{{ task.runTimes }}</td>
-                        <td>{{ dataCounts_list[idx] }}</td>
+                        <td>{{ task.dataCounts }}</td>
                     </tr>
 
                 </tbody>
@@ -108,7 +108,7 @@ let snackbar_success = ref() // 操作结果提示消息条-操作成功
 let snackbar_fail = ref() // 操作结果提示消息条-操作失败
 let taskCounts = ref(0); // 记录任务个数
 let dataCounts = ref(0); // 记录数据个数
-let dataCounts_list = ref([]); // 数据数量列表
+// let dataCounts_list = ref([]); // 数据数量列表
 
 function modify_click(idx) { // 数据编辑操作点击事件
     // console.log(modify.value[idx])
@@ -195,12 +195,18 @@ onMounted(() => { // 钩子函数，页面挂载到DOM完成后调用
             // 请求成功
             task_list.value = response.data;
             taskCounts.value = task_list.value.length;
-            let i;
-            for (i = 0; i < task_list.value.length; ++i) {
-                axios.get('http://localhost:8080/resmag/' + task_list.value[i].taskName)
+            // console.log("GET TASK***********")
+            // console.log(task_list.value)
+            for(let task of task_list.value) {
+                axios.get('http://localhost:8080/resmag/' + task.taskName)
                     .then(function (response) {
                         // 请求成功
-                        dataCounts_list.value.push(response.data.length)
+                        // console.log(response.data)
+                        // dataCounts_list.value.push(response.data.length)
+                        // console.log('#########')
+                        // console.log(task)
+                        let index = task_list.value.findIndex(item => {return item.taskName == task.taskName});
+                        task_list.value[index].dataCounts = response.data.length
                         // console.log(news_list.value[0].id)
                     })
                     .catch(function (error) {
@@ -208,6 +214,7 @@ onMounted(() => { // 钩子函数，页面挂载到DOM完成后调用
                         console.log(error);
                     }); // 根据任务名称获取新闻数据
             }
+            console.log(task_list.value)
         })
         .catch(function (error) {
             // 请求失败
