@@ -185,7 +185,7 @@ function create_job_custom() {
         'request_counts': job_request.value,
         'rules': job_rules.value
     };
-    axios.post('http://' + hostUrl.value.split(':')[0] + ':2233', queryString.stringify(data), {
+    axios.post('http://' + hostUrl.value.split(':')[0] + ':2233/create', queryString.stringify(data), {
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
     }).then(function (response) {
         if (response.data == 'ok') {

@@ -1,6 +1,6 @@
 <template>
-    <h2 style="margin-top: 0;">数据概况</h2>
-
+    <h2 style="margin-top: 0;">实时数据采集情况</h2>
+    <div ref="last_three_hours_data" style="width: 500px; height: 300px; display: block;"></div>
     <h2>主机管理</h2>
     <!-- <div class="row" style="width: 100%;">
         <div class="col-md-2">
@@ -144,6 +144,7 @@ import moment from 'moment';
 import 'mdui/components/dialog.js';
 import 'mdui/components/snackbar.js';
 import emitter from '@/tools/emitter.js';
+import * as echarts from 'echarts';
 
 let host_list = ref([]); // 主机列表存放主机状态信息的列表
 let hosts = ref([]); // 存储所有主机ip与port的列表
@@ -157,10 +158,11 @@ let snackbar_success = ref(); // 操作成功
 let snackbar_fail = ref(); // 操作失败
 let hostAndTask_list = ref([]); // 存放主机以及其项目与任务数据
 let online_host_list = ref([]); // 可用主机列表
+let last_three_hours_data = ref(); // 监控实时数据采集情况
 
-function get_hosts() {
+async function get_hosts() {
     let index;
-    axios.get("http://localhost:8080/host").then(function (response) {
+    await axios.get("http://localhost:8080/host").then(function (response) {
         hosts.value = response.data;
         // console.log("######")
         // console.log(hosts.value[0].ip)
@@ -351,8 +353,46 @@ function get_online_host() {
     emitter.emit('getOnlineHost', online_host_list.value);
 } // 返回在线主机
 
-onMounted(() => {
-    get_hosts();
+onMounted(async () => {
+    await get_hosts();
+    let Chart_last_three_hours_data = echarts.init(last_three_hours_data.value);
+    let option_last_three_hours_data = {
+        title: {
+            text: '实时数据采集量(近五分钟)'
+        },
+        xAxis: {
+            data: [moment().subtract(4, 'm').format('mm分ss'), moment().subtract(3, 'm').format('mm分ss'), moment().subtract(2, 'm').format('mm分ss'), moment().subtract(1, 'm').format('mm分ss'), moment().format('mm分ss')],
+            alignWithLabel: true,
+            axisLabel: {
+                interval: 0
+            },
+        },
+        yAxis: {
+            minInterval: 1
+        },
+        series: [
+            {
+                data: [1,2 ,0 ,4, 5],
+                type: 'line',
+                smooth: true,
+                label: {
+                    show: true,
+                    position: 'top',
+                    textStyle: {
+                        fontSize: 10
+                    }
+                },
+            }
+        ],
+        grid: {
+            left: "30px",
+            top: "40px",
+            right: "30px",
+            bottom: "30px"
+        }
+    };
+
+    Chart_last_three_hours_data.setOption(option_last_three_hours_data);
     // get_tasks();
 }); // DOM加载时调用
 
