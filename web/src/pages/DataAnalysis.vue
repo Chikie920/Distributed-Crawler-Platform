@@ -1,12 +1,16 @@
 <template>
     <h2>数据概览</h2>
-    <div class="row">
+    <div class="row" style="width: 80vw;">
         <div class="col-md-4" ref="news_platform_data" style="width: 400px; height: 200px; display: block;"></div>
         <div class="col-md-4" ref="daily_data" style="width: 400px; height: 200px;margin-left: 1.5rem; display: block;">
         </div>
     </div>
     <h2>词云</h2>
+    <div style="width: 600px; height: 300px; display: block;">
+        <img :src="wordCloud" style="width: 100%; height: auto; max-height: 100%;">
+    </div>
     <h2 style="margin-top: 1rem;">情感分析</h2>
+    <div ref="sentiment_pie" style="width: 400px; height: 200px;margin-left: 1.5rem; display: block;"></div>
     <h2 style="margin-top: 1rem;">关键字提取</h2>
 </template>
 
@@ -16,12 +20,16 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import * as echarts from 'echarts';
 import axios from 'axios';
 import moment from 'moment/moment.js';
+import queryString from 'query-string';
 
 let news_platform_data = ref(); // 用于展示各个新闻平台的数据采集量
 let taskName_list = ref([]); // 任务名称列表
 let taskData_list = ref([]); // 任务数据列表
 let daily_data = ref(); // 用于展示每日采集数据量
 let fiveDays_data = ref([]); // 存储五日数据量
+let wordCloud = ref(); // 词云图片
+let sentiment_pie = ref(); // 情感分析饼图
+let sentiment_grade = ref(); // 存放情感数据
 
 async function get_task_name() {
     await axios.get('http://localhost:8080/taskName')
@@ -64,7 +72,7 @@ async function get_task_data_counts() {
 async function get_5days_counts() {
     let date_list = [moment().subtract(4, 'days').format('YYYYMMDD'), moment().subtract(3, 'days').format('YYYYMMDD'), moment().subtract(2, 'days').format('YYYYMMDD'), moment().subtract(1, 'days').format('YYYYMMDD'), moment().format('YYYYMMDD')];
     // console.log(date_list)
-    for(let date of date_list) {
+    for (let date of date_list) {
         // console.log(date)
         await axios.get('http://localhost:8080/resmag/counts/' + date)
             .then(function (response) {
@@ -78,16 +86,62 @@ async function get_5days_counts() {
     // console.log(fiveDays_data.value)
 } // 获取近五日数据量
 
+async function get_wordCloud() {
+    let content = '';
+    await axios.get('http://localhost:8080/resmag/contents')
+        .then(function (response) {
+            let news_content_list = response.data;
+            for (let item of news_content_list) {
+                content += item;
+            }
+        })
+        .catch(function (error) {
+            // 请求失败
+            console.log(error);
+        });
+    await axios.post('http://127.0.0.1:2233/wordCloud', queryString.stringify({ 'content': content }), {
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+    }).then(function (response) {
+        wordCloud.value = "data:image/jpg;base64," + response.data
+    }).catch(function (error) {
+        console.error(error);
+    });
+} // 获取所有新闻内容
+
+async function get_sentiment() {
+    let content = '';
+    await axios.get('http://localhost:8080/resmag/contents')
+        .then(function (response) {
+            let news_content_list = response.data;
+            for (let item of news_content_list) {
+                content += item;
+            }
+        })
+        .catch(function (error) {
+            // 请求失败
+            console.log(error);
+        });
+    await axios.post('http://127.0.0.1:2233/sentiment', queryString.stringify({ 'content': content }), {
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+    }).then(function (response) {
+        // console.log(response.data);
+        sentiment_grade.value = response.data;
+    }).catch(function (error) {
+        console.error(error);
+    });
+} // 获取情感数据
+
 onBeforeMount(() => {
     // console.log('before')
 
-})
+});
 
 onMounted(async () => {
     // console.log('on')
     await get_task_name();
     await get_task_data_counts();
     await get_5days_counts();
+    await get_sentiment();
     let Chart_news_platform_data = echarts.init(news_platform_data.value);
 
     let option_news_platform_data = {
@@ -117,6 +171,7 @@ onMounted(async () => {
         }
     };
     Chart_news_platform_data.setOption(option_news_platform_data);
+    // 柱状图
 
     let Chart_daily_data = echarts.init(daily_data.value);
     // console.log(Now.format('YYYY/MM/DD'))
@@ -158,9 +213,46 @@ onMounted(async () => {
     };
 
     Chart_daily_data.setOption(option_daily_data);
+    // 折线图
+
+
+    let Chart_sentiment_pie = echarts.init(sentiment_pie.value);
+    let option_sentiment_pie = {
+        series: [
+            {
+                type: 'pie',
+                data: [
+                    {
+                        value: sentiment_grade.value['pos_grade'],
+                        name: '正面新闻占比'
+                    },
+                    {
+                        value: sentiment_grade.value['neg_grade'],
+                        name: '负面新闻占比'
+                    }
+                ],
+                label: {
+                    formatter: '{b}{d}%'
+                }
+            }
+        ]
+    };
+
+    Chart_sentiment_pie.setOption(option_sentiment_pie);
+    // 饼图
+
+    await get_wordCloud();
 
 });
 
 </script>
 
-<style scoped></style>
+<style scoped>
+img {
+    -moz-user-select: none;
+    -webkit-user-select: none;
+    -ms-user-select: none;
+    -khtml-user-selece: none;
+    user-select: none;
+}
+</style>
