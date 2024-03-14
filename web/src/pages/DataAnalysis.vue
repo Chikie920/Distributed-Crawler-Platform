@@ -163,7 +163,12 @@ onMounted(async () => {
         legend: {
         },
         xAxis: {
-            data: taskName_list.value
+            data: taskName_list.value,
+            axisLabel: {
+                //x轴文字的配置
+                show: true,
+                interval: 0,//使x轴文字显示全
+            }
         },
         yAxis: {
             minInterval: 1
@@ -235,15 +240,18 @@ onMounted(async () => {
                 data: [
                     {
                         value: sentiment_grade.value['pos_grade'],
-                        name: '正面新闻占比'
+                        name: '正面新闻'
                     },
                     {
                         value: sentiment_grade.value['neg_grade'],
-                        name: '负面新闻占比'
+                        name: '负面新闻'
                     }
                 ],
                 label: {
-                    formatter: '{b}{d}%'
+                    formatter: '{b}{d}%',
+                    position: "outer",
+                    alignTo: "edge",
+                    margin: 0
                 }
             }
         ]
@@ -261,7 +269,13 @@ onMounted(async () => {
         },
         xAxis: {
             type: 'category',
-            data: keyWords.value['keys']
+            data: keyWords.value['keys'],
+            axisLabel: {
+                //x轴文字的配置
+                show: true,
+                interval: 0,//使x轴文字显示全
+            }
+
         },
         yAxis: {
             type: 'value'
@@ -279,11 +293,11 @@ onMounted(async () => {
             }
         }],
         grid: {
-                left: "30px",
-                top: "40px",
-                right: "30px",
-                bottom: "30px"
-            }
+            left: "30px",
+            top: "40px",
+            right: "30px",
+            bottom: "30px"
+        }
     };
 
     Chart_keyWords_bar.setOption(option_keyWords_bar);

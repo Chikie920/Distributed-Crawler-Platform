@@ -123,10 +123,11 @@ function change_option_status() {
     // console.log("触发"+advanced_option.value)
 } // 更改设置状态
 
-function create_job_by_template() {
+async function create_job_by_template() {
     let job_dict = { '百度新闻': 'baidu', '网易新闻': '163', '新浪新闻': 'sina', '凤凰新闻': 'ifeng', '澎湃新闻': 'pengpai', '搜狐新闻': 'sohu' }
+    let job_url_dict = {'百度新闻': 'https://news.baidu.com/', '网易新闻': 'https://news.163.com/', '新浪新闻': 'https://news.sina.com.cn/', '凤凰新闻': 'https://www.ifeng.com/', '澎湃新闻': 'https://www.thepaper.cn/', '搜狐新闻': 'https://news.sohu.com/'}
     // console.log("http://" + hostUrl.value + "/schedule.json", 'project=' + 'spider' + "&spider=" + job_dict[job.value])
-    axios.post("http://" + hostUrl.value + "/schedule.json", 'project=' + 'spider' + "&spider=" + job_dict[job.value], {
+    await axios.post("http://" + hostUrl.value + "/schedule.json", 'project=' + 'spider' + "&spider=" + job_dict[job.value], {
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
     }).then(function (response) {
         // console.log(response.data)
@@ -137,11 +138,23 @@ function create_job_by_template() {
         }
     }).then(function (error) {
         console.error(error);
-    });
+    }); // scrapyd调度任务
+
+    await axios.post('http://' + hostUrl.value.split(':')[0] + ':2233/add_url', queryString.stringify({'spiderName':job_dict[job.value], 'url':job_url_dict[job.value]}), {
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+    }).then(function (response) {
+        if (response.data == 'ok') {
+            snackbar_success.value.open = true;
+        } else {
+            snackbar_fail.value.open = true;
+        }
+    }).catch(error => {
+        console.error(error);
+    }); // 新增目标url
 
     let index = taskName_list.value.indexOf(job_dict[job.value])
     if (index != -1) { // 判断是否以及有重名任务
-        axios.put('http://127.0.0.1:8080/task', {
+        await axios.put('http://127.0.0.1:8080/task', {
             'taskName': job_dict[job.value],
             'createTime': task_list.value[index].create_time,
             'runTimes': parseInt(task_list.value[index].runTimes) + 1
@@ -195,7 +208,7 @@ function create_job_custom() {
         }
     }).catch(error => {
         console.error(error);
-    })
+    });
 
     let index = taskName_list.value.indexOf(job_name.value)
     if (index != -1) { // 判断是否以及有重名任务

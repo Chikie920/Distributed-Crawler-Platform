@@ -1,6 +1,7 @@
 <template>
     <h2 style="margin-top: 0;">实时数据采集情况</h2>
-    <div ref="last_three_hours_data" style="width: 500px; height: 300px; display: block;"></div>
+    <div :key="key_last_three_hours_data" ref="last_three_hours_data"
+        style="width: 500px; height: 300px; display: block;"></div>
     <h2>主机管理</h2>
     <table class="table table-hover table-condensed">
         <thead>
@@ -140,6 +141,8 @@ let hostAndTask_list = ref([]); // 存放主机以及其项目与任务数据
 let online_host_list = ref([]); // 可用主机列表
 let last_three_hours_data = ref(); // 监控实时数据采集情况
 let fiveminutes_data = ref([]); // 最近五分钟数据采集情况
+let timer = ref() // 定时器
+let key_last_three_hours_data = ref(1); // key值用于重新渲染组件，实现动态更新
 
 async function get_hosts() {
     let index;
@@ -260,7 +263,7 @@ function cancel_operate() {
 function save_operate() {
     let id = moment().format('YYYYMMDDHHmmss');
     let data = { "id": id, "ip": ip.value, "port": port.value };
-    console.log(data)
+    // console.log(data)
     axios.post('http://localhost:8080/host', data, {
         headers: { 'Content-Type': 'application/json' }
     }
@@ -323,7 +326,7 @@ function cancel_job(hostIp, hostPort, project, Spiderid) {
     axios.post("http://" + hostIp + ":" + hostPort + "/cancel.json", 'project=' + project + "&job=" + Spiderid, {
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
     }).then(function (response) {
-        console.log(response.data)
+        // console.log(response.data)
     }).then(function (error) {
         console.error(error);
     })
@@ -394,11 +397,23 @@ onMounted(async () => {
     };
 
     Chart_last_three_hours_data.setOption(option_last_three_hours_data);
+    timer.value = setInterval(function () {
+        axios.get('http://127.0.0.1:2233/data_sync'
+        ).then(function (response) {
+            if (response.data == 'ok') {
+                console.log("data_async");
+                key_last_three_hours_data.value += 1;
+            }
+        }).catch(error => {
+            console.error(error);
+        }); // 新增目标url
+    }, 1000 * 60); // 定时执行数据库同步
     // get_tasks();
 }); // DOM加载时调用
 
 onUnmounted(() => {
     get_online_host(); // 触发事件
+    clearInterval(timer.value); // 移除定时器
 }); // DOM被移除时调用
 
 
