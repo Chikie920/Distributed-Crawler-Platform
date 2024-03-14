@@ -1,7 +1,6 @@
 <template>
     <h2 style="margin-top: 0;">实时数据采集情况</h2>
-    <div :key="key_last_three_hours_data" ref="last_three_hours_data"
-        style="width: 500px; height: 300px; display: block;"></div>
+    <div ref="last_three_hours_data" style="width: 500px; height: 300px; display: block;"></div>
     <h2>主机管理</h2>
     <table class="table table-hover table-condensed">
         <thead>
@@ -142,7 +141,6 @@ let online_host_list = ref([]); // 可用主机列表
 let last_three_hours_data = ref(); // 监控实时数据采集情况
 let fiveminutes_data = ref([]); // 最近五分钟数据采集情况
 let timer = ref() // 定时器
-let key_last_three_hours_data = ref(1); // key值用于重新渲染组件，实现动态更新
 
 async function get_hosts() {
     let index;
@@ -402,7 +400,6 @@ onMounted(async () => {
         ).then(function (response) {
             if (response.data == 'ok') {
                 console.log("data_async");
-                key_last_three_hours_data.value += 1;
             }
         }).catch(error => {
             console.error(error);

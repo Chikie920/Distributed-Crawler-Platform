@@ -187,7 +187,7 @@ async function create_job_by_template() {
 
 } // 根据模板创建任务
 
-function create_job_custom() {
+async function create_job_custom() {
     // console.log(hostUrl.value);
     let data = {
         'name': job_name.value,
@@ -198,7 +198,7 @@ function create_job_custom() {
         'request_counts': job_request.value,
         'rules': job_rules.value
     };
-    axios.post('http://' + hostUrl.value.split(':')[0] + ':2233/create', queryString.stringify(data), {
+    await axios.post('http://' + hostUrl.value.split(':')[0] + ':2233/create', queryString.stringify(data), {
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
     }).then(function (response) {
         if (response.data == 'ok') {
@@ -208,7 +208,19 @@ function create_job_custom() {
         }
     }).catch(error => {
         console.error(error);
-    });
+    }); // 提交自定义创建请求
+
+    await axios.post('http://' + hostUrl.value.split(':')[0] + ':2233/add_url', queryString.stringify({'spiderName':job_name.value, 'url':job_url.value}), {
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+    }).then(function (response) {
+        if (response.data == 'ok') {
+            snackbar_success.value.open = true;
+        } else {
+            snackbar_fail.value.open = true;
+        }
+    }).catch(error => {
+        console.error(error);
+    }); // 新增目标url
 
     let index = taskName_list.value.indexOf(job_name.value)
     if (index != -1) { // 判断是否以及有重名任务
