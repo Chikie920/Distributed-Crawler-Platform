@@ -5,15 +5,17 @@ public class News {
     private String title;
     private String date;
     private String content;
+    private String url;
 
     public News() {
     }
 
-    public News(String id, String title, String date, String content) {
+    public News(String id, String title, String date, String content, String url) {
         this.id = id;
         this.title = title;
         this.date = date;
         this.content = content;
+        this.url = url;
     }
 
     public String getId() {
@@ -32,6 +34,14 @@ public class News {
         this.title = title;
     }
 
+    public String getDate() {
+        return date;
+    }
+
+    public void setDate(String date) {
+        this.date = date;
+    }
+
     public String getContent() {
         return content;
     }
@@ -40,12 +50,12 @@ public class News {
         this.content = content;
     }
 
-    public String getDate() {
-        return date;
+    public String getUrl() {
+        return url;
     }
 
-    public void setDate(String date) {
-        this.date = date;
+    public void setUrl(String url) {
+        this.url = url;
     }
 
     @Override
@@ -55,6 +65,7 @@ public class News {
                 ", title='" + title + '\'' +
                 ", date='" + date + '\'' +
                 ", content='" + content + '\'' +
+                ", url='" + url + '\'' +
                 '}';
     }
 }

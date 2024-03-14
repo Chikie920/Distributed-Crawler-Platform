@@ -3,7 +3,6 @@ package com.chikie.controller;
 
 import com.chikie.entity.News;
 import com.chikie.service.NewsService;
-import org.apache.ibatis.annotations.Select;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
