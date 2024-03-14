@@ -1,4 +1,7 @@
+import datetime
 import json
+import os
+import time
 from scrapy import Request
 from scrapy_redis.spiders import RedisSpider
 from spider.items import SpiderItem
@@ -6,8 +9,6 @@ from spider.items import SpiderItem
 
 class SinaSpider(RedisSpider):
     name = "sina"
-    # allowed_domains = ["news.sina.com.cn", "finance.sina.com.cn"]
-    # start_urls = ["https://feed.mix.sina.com.cn/api/roll/get?pageid=153&lid=2509&k=&num=50&page=1"]
     # lid参数
     # 国内 2510
     # 国际 2511
@@ -45,9 +46,11 @@ class SinaSpider(RedisSpider):
 
     def parse_content(self, response):
         item = SpiderItem()
-        item['title'] = response.xpath("//h1/text()").extract()
+        item['id'] = os.path.basename(__file__).split(".")[0]+datetime.datetime.now().strftime("%Y%m%d%H%M%S")
+        item['title'] = response.xpath("//h1/text()").extract_first()
         item['url'] = response.url
-        item['date'] = response.xpath("//span[@class='date']//text()").extract_first().replace(" ","")
-        content = "\n".join(response.xpath("//div[@class='article-content-left']//div[@class='article']//p//text()").extract())
+        item['date'] = response.xpath("//span[@class='date']//text()").extract_first().strip()
+        content = "\n".join(response.xpath("//div[@class='article-content-left']//div[@class='article']/p/text()").extract())
         item['content'] = content
+        time.sleep(3)
         yield item

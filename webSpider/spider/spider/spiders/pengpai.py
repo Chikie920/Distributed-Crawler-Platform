@@ -1,14 +1,15 @@
+import time
 import scrapy
 from scrapy.http import JsonRequest
 import json
 from spider.items import SpiderItem
 from scrapy_redis.spiders import RedisSpider
+import os
+import datetime
 
 
 class PengpaiSpider(RedisSpider):
     name = "pengpai"
-    # allowed_domains = ["www.thepaper.cn"]
-    # start_urls = ["https://www.thepaper.cn"]
 
     redis_key = 'pengpai:urls'
 
@@ -33,9 +34,11 @@ class PengpaiSpider(RedisSpider):
 
     def parse_content(self, response):
         item = SpiderItem()
-        item['title'] = response.xpath("//h1/text()").extract()
+        item['id'] = os.path.basename(__file__).split(".")[0]+datetime.datetime.now().strftime("%Y%m%d%H%M%S")
+        item['title'] = response.xpath("//h1/text()").extract_first()
         item['url'] = response.url
-        item['date'] = response.xpath("//div[@class='ant-space-item']/span/text()").extract_first().replace(" ","")
+        item['date'] = response.xpath("//div[@class='ant-space-item']/span/text()").extract_first().strip()
         content = "\n".join(response.xpath("//div[@class='index_cententWrap__Jv8jK']//p/text()").extract())
         item['content'] = content
+        time.sleep(3)
         yield item

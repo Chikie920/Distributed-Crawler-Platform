@@ -9,6 +9,7 @@ from scrapy.http import HtmlResponse
 from itemadapter import is_item, ItemAdapter
 from selenium import webdriver
 import time
+import sys
 
 
 class SpiderSpiderMiddleware:
@@ -76,7 +77,7 @@ class SpiderDownloaderMiddleware:
         print("***************")
         print(request.url)
         browser.get(request.url)
-        time.sleep(1)
+        time.sleep(2)
         # 拦截request请求
         print("拦截请求....")
         return HtmlResponse(url=browser.current_url, request=request, body=browser.page_source, encoding='utf-8')
@@ -104,19 +105,23 @@ class SpiderDownloaderMiddleware:
         spider.logger.info("Spider opened: %s" % spider.name)
         print("初始化driver")
         option = webdriver.ChromeOptions()
+        prefs = {"profile.managed_default_content_settings.images":2}
+        option.add_experimental_option("prefs",prefs)
         option.add_argument('no-sandbox')
         option.add_argument('headless')
         self.browser = webdriver.Chrome(options=option)
+        # print('*************我执行了')
         if spider.name == "baidu": # 如果为百度爬虫则添加cookie
-            cookie_list = spider.cookie_str.split("; ")
-            cookie = {}
+            self.browser.get('http://news.baidu.com/')
+            cookie_list = spider.cookie_str.split(";")
             for item in cookie_list:
-                key = item.split("=")[0]
-                value = item.split("=")[1]
-                cookie[key] = value
-            self.browser.add_cookie(cookie)
+                cookie = item.strip("=")
+                self.browser.add_cookie(cookie_dict={'name':cookie[0].strip(), 'value': cookie[1].strip()})
+        # self.browser.close()
+        print("初始化完毕....")
         # 设置参数并初始化driver
 
     def spider_closed(self, spider):
         spider.logger.info("Spider closed: %s" % spider.name)
-        self.browser.close() # 释放资源
+        self.browser.quit() # 释放资源
+        sys.exit() # 终止程序

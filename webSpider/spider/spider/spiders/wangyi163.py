@@ -1,14 +1,16 @@
+import datetime
+import os
+import time
 from scrapy.linkextractors import LinkExtractor
 from scrapy.spiders import Rule
 from scrapy_redis.spiders import RedisCrawlSpider
 from spider.items import SpiderItem
 import re
+from gne import GeneralNewsExtractor
 
 
 class A163Spider(RedisCrawlSpider):
     name = "163"
-    # allowed_domains = ["www.163.com"]
-    # start_urls = ["https://www.163.com"]
 
     redis_key = 'wangyi:urls'
 
@@ -23,8 +25,17 @@ class A163Spider(RedisCrawlSpider):
 
     def parse_item(self, response):
         item = SpiderItem()
+        item['id'] = os.path.basename(__file__).split(".")[0]+datetime.datetime.now().strftime("%Y%m%d%H%M%S")
         item['title'] = response.xpath("//h1/text()").extract_first()
         item['url'] = response.url
-        item['date'] = re.search('\d+-\d+-\d+ \d+:\d+:\d+',response.xpath("//div[@class='post_info']/text()").extract_first()).group()
+        
+        date = response.xpath("//div[@class='post_info']/text()").extract_first()
+        if date != None:
+            item['date'] = item['date'] = re.search('\d+-\d+-\d+ \d+:\d+:\d+',date).group()
+        else:
+            extractor = GeneralNewsExtractor()
+            result = extractor.extract(response.text)
+            item['date'] = result['publish_time']
         item['content'] = "".join(response.xpath("//div[@class='post_body']//p/text()").extract())
+        time.sleep(3)
         yield item
