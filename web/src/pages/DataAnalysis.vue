@@ -12,6 +12,7 @@
     <h2 style="margin-top: 1rem;">情感分析</h2>
     <div ref="sentiment_pie" style="width: 400px; height: 200px;margin-left: 1.5rem; display: block;"></div>
     <h2 style="margin-top: 1rem;">关键字提取</h2>
+    <div ref="keyWords_bar" style="width: 80vw; height: 40vh;margin-left: 1.5rem; display: block;"></div>
 </template>
 
 <script setup>
@@ -30,6 +31,9 @@ let fiveDays_data = ref([]); // 存储五日数据量
 let wordCloud = ref(); // 词云图片
 let sentiment_pie = ref(); // 情感分析饼图
 let sentiment_grade = ref(); // 存放情感数据
+let keyWords_bar = ref(); // 关键词柱状图
+let contents = ref(); // 存放新闻关键词
+let keyWords = ref(); // 存放关键词
 
 async function get_task_name() {
     await axios.get('http://localhost:8080/taskName')
@@ -86,7 +90,7 @@ async function get_5days_counts() {
     // console.log(fiveDays_data.value)
 } // 获取近五日数据量
 
-async function get_wordCloud() {
+async function get_contents() {
     let content = '';
     await axios.get('http://localhost:8080/resmag/contents')
         .then(function (response) {
@@ -94,12 +98,16 @@ async function get_wordCloud() {
             for (let item of news_content_list) {
                 content += item;
             }
+            contents.value = content;
         })
         .catch(function (error) {
             // 请求失败
             console.log(error);
         });
-    await axios.post('http://127.0.0.1:2233/wordCloud', queryString.stringify({ 'content': content }), {
+} // 获取所有新闻信息
+
+async function get_wordCloud() {
+    await axios.post('http://127.0.0.1:2233/wordCloud', queryString.stringify({ 'content': contents.value }), {
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
     }).then(function (response) {
         wordCloud.value = "data:image/jpg;base64," + response.data
@@ -109,19 +117,7 @@ async function get_wordCloud() {
 } // 获取所有新闻内容
 
 async function get_sentiment() {
-    let content = '';
-    await axios.get('http://localhost:8080/resmag/contents')
-        .then(function (response) {
-            let news_content_list = response.data;
-            for (let item of news_content_list) {
-                content += item;
-            }
-        })
-        .catch(function (error) {
-            // 请求失败
-            console.log(error);
-        });
-    await axios.post('http://127.0.0.1:2233/sentiment', queryString.stringify({ 'content': content }), {
+    await axios.post('http://127.0.0.1:2233/sentiment', queryString.stringify({ 'content': contents.value }), {
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
     }).then(function (response) {
         // console.log(response.data);
@@ -130,6 +126,19 @@ async function get_sentiment() {
         console.error(error);
     });
 } // 获取情感数据
+
+async function get_keyWords() {
+    await axios.post('http://127.0.0.1:2233/keyWords', queryString.stringify({ 'content': contents.value }), {
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+    }).then(function (response) {
+        // console.log(response.data);
+        // sentiment_grade.value = response.data;
+        keyWords.value = response.data;
+        // console.log(keyWords.value)
+    }).catch(function (error) {
+        console.error(error);
+    });
+} // 获取新闻关键词
 
 onBeforeMount(() => {
     // console.log('before')
@@ -140,8 +149,10 @@ onMounted(async () => {
     // console.log('on')
     await get_task_name();
     await get_task_data_counts();
+    await get_contents();
     await get_5days_counts();
     await get_sentiment();
+    await get_keyWords();
     let Chart_news_platform_data = echarts.init(news_platform_data.value);
 
     let option_news_platform_data = {
@@ -240,6 +251,42 @@ onMounted(async () => {
 
     Chart_sentiment_pie.setOption(option_sentiment_pie);
     // 饼图
+
+    keyWords_bar
+
+    let Chart_keyWords_bar = echarts.init(keyWords_bar.value);
+    let option_keyWords_bar = {
+        title: {
+            text: '新闻关键词'
+        },
+        xAxis: {
+            type: 'category',
+            data: keyWords.value['keys']
+        },
+        yAxis: {
+            type: 'value'
+        },
+        series: [{
+            data: keyWords.value['weight'],
+            type: 'bar',
+            itemStyle: {
+                normal: {
+                    color: function (params) {
+                        var colorList = ['#c23531', '#2f4554', '#61a0a8', '#d48265', '#91c7ae', '#749f83', '#ca8622', '#1685a9', '#f47983', '#21a675', '#574266', '#88ada6', '#cb3a56', '#edd1d8', '#549688', '#827100', '#00a381', '#fdeff2', '#767c6b', '#cc7eb1'];
+                        return colorList[params.dataIndex]
+                    }
+                }
+            }
+        }],
+        grid: {
+                left: "30px",
+                top: "40px",
+                right: "30px",
+                bottom: "30px"
+            }
+    };
+
+    Chart_keyWords_bar.setOption(option_keyWords_bar);
 
     await get_wordCloud();
 
