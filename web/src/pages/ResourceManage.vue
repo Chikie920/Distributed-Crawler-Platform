@@ -46,8 +46,10 @@
                             </span>
 
                         </td>
-                        <td><a class="d-inline-block text-truncate" style="max-width: 200px;">URL
-                                https://www.bilibili.com/video/BV1Za4y1r7KE/?spm_id_from=333.337.search-card.all.click&vd_source=8b25b2877285ef96d28dc58462081a5a</a>
+                        <td>
+                            <a class="d-inline-block text-truncate" style="max-width: 200px;">
+                                {{ news.url }}
+                            </a>
                         </td>
                         <td>{{ news.date }}</td>
                         <td>
@@ -69,7 +71,7 @@
                 <h5>Title</h5>
                 <mdui-text-field v-model="news_list[index].title"></mdui-text-field>
                 <h5>Url</h5>
-                <mdui-text-field placeholder="news_list[index].Url"></mdui-text-field>
+                <mdui-text-field readonly :placeholder="news_list[index].url"></mdui-text-field>
                 <h5>Date</h5>
                 <mdui-text-field v-model="news_list[index].date"></mdui-text-field>
                 <h5>Content</h5>
@@ -183,7 +185,7 @@ onMounted(() => { // 钩子函数，页面挂载到DOM完成后调用
             // 请求成功
             news_list.value = response.data;
             dataCounts.value = news_list.value.length;
-            // console.log(news_list.value[0].id)
+            console.log(news_list.value)
         })
         .catch(function (error) {
             // 请求失败
