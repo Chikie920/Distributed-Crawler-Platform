@@ -335,7 +335,8 @@ function get_online_host() {
 } // 返回在线主机
 
 async function get_fiveminutes_data() {
-    let date_list = [moment().subtract(4, 'm').format('YYYYMMDDmmss'), moment().subtract(3, 'm').format('YYYYMMDDmmss'), moment().subtract(2, 'm').format('YYYYMMDDmmss'), moment().subtract(1, 'm').format('YYYYMMDDmmss'), moment().format('YYYYMMDDmmss')];
+    // console.log(moment().format('YYYYMMDDHHmm'))
+    let date_list = [moment().subtract(4, 'm').format('YYYYMMDDHHmms'), moment().subtract(3, 'm').format('YYYYMMDDHHmm'), moment().subtract(2, 'm').format('YYYYMMDDHHmm'), moment().subtract(1, 'm').format('YYYYMMDDHHmm'), moment().format('YYYYMMDDHHmm')];
     // console.log(date_list)
     for (let date of date_list) {
         // console.log(date)
