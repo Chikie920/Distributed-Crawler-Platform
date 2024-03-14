@@ -2,26 +2,6 @@
     <h2 style="margin-top: 0;">实时数据采集情况</h2>
     <div ref="last_three_hours_data" style="width: 500px; height: 300px; display: block;"></div>
     <h2>主机管理</h2>
-    <!-- <div class="row" style="width: 100%;">
-        <div class="col-md-2">
-            <mdui-card clickable variant="filled" style="width: 200px;height: 124px;background-color: #84b9cb;">
-                <h5 class="text-center">主机总数</h5>
-                <h1 class="text-center">1</h1>
-            </mdui-card>
-        </div>
-        <div class="col-md-2">
-            <mdui-card clickable variant="filled" style="width: 200px;height: 124px;background-color: #99CC99;">
-                <h5 class="text-center">已连接主机</h5>
-                <h1 class="text-center">1</h1>
-            </mdui-card>
-        </div>
-        <div class="col-md-2">
-            <mdui-card clickable variant="filled" style="width: 200px;height: 124px;background-color: #d4dcd6;">
-                <h5 class="text-center">未连接主机</h5>
-                <h1 class="text-center">1</h1>
-            </mdui-card>
-        </div>
-    </div> -->
     <table class="table table-hover table-condensed">
         <thead>
             <tr>
@@ -159,6 +139,7 @@ let snackbar_fail = ref(); // 操作失败
 let hostAndTask_list = ref([]); // 存放主机以及其项目与任务数据
 let online_host_list = ref([]); // 可用主机列表
 let last_three_hours_data = ref(); // 监控实时数据采集情况
+let fiveminutes_data = ref([]); // 最近五分钟数据采集情况
 
 async function get_hosts() {
     let index;
@@ -232,7 +213,7 @@ function get_tasks(hostIp, hostPort) {
                     });
             }
         }).catch(function (error) {
-            console.error(error)
+            console.error('主机连接超时')
         });
 } // 获取任务列表
 
@@ -353,8 +334,27 @@ function get_online_host() {
     emitter.emit('getOnlineHost', online_host_list.value);
 } // 返回在线主机
 
+async function get_fiveminutes_data() {
+    let date_list = [moment().subtract(4, 'm').format('YYYYMMDDmmss'), moment().subtract(3, 'm').format('YYYYMMDDmmss'), moment().subtract(2, 'm').format('YYYYMMDDmmss'), moment().subtract(1, 'm').format('YYYYMMDDmmss'), moment().format('YYYYMMDDmmss')];
+    // console.log(date_list)
+    for (let date of date_list) {
+        // console.log(date)
+        await axios.get('http://localhost:8080/resmag/counts/' + date)
+            .then(function (response) {
+                // console.log(response.data)
+                fiveminutes_data.value.push(response.data);
+            })
+            .catch(function (error) {
+                // 请求失败
+                console.log(error);
+            });
+    }
+    // console.log(fiveminutes_data.value)
+} // 获取近五分钟数据
+
 onMounted(async () => {
     await get_hosts();
+    await get_fiveminutes_data();
     let Chart_last_three_hours_data = echarts.init(last_three_hours_data.value);
     let option_last_three_hours_data = {
         title: {
@@ -372,7 +372,7 @@ onMounted(async () => {
         },
         series: [
             {
-                data: [1,2 ,0 ,4, 5],
+                data: fiveminutes_data.value,
                 type: 'line',
                 smooth: true,
                 label: {
