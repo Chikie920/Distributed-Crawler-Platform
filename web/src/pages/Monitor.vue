@@ -320,14 +320,23 @@ function reboot_job(hostIp, hostPort, project, spider, Spiderid) {
     }); // 更新运行次数
 } // 重启任务
 
-function cancel_job(hostIp, hostPort, project, Spiderid) {
-    axios.post("http://" + hostIp + ":" + hostPort + "/cancel.json", 'project=' + project + "&job=" + Spiderid, {
+async function cancel_job(hostIp, hostPort, project, Spiderid) {
+    await axios.post("http://" + hostIp + ":" + hostPort + "/cancel.json", 'project=' + project + "&job=" + Spiderid, {
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
     }).then(function (response) {
         // console.log(response.data)
     }).then(function (error) {
         console.error(error);
-    })
+    });
+    await axios.get('http://localhost:2233/kill_driver')
+        .then(function (response) {
+            console.log("kill driver")
+            console.log(response.data)
+        })
+        .catch(function (error) {
+            // 请求失败
+            console.log(error);
+        });
 } // 取消任务
 
 function get_online_host() {
@@ -404,7 +413,7 @@ onMounted(async () => {
         }).catch(error => {
             console.error(error);
         }); // 新增目标url
-    }, 1000 * 60); // 定时执行数据库同步
+    }, 1000 * 30); // 定时执行数据库同步
     // get_tasks();
 }); // DOM加载时调用
 

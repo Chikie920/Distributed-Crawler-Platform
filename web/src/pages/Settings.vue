@@ -1,23 +1,23 @@
 <template>
-    <h2>User-Agent Setting</h2>
+    <h2>User-Agent 设置</h2>
     <mdui-radio-group :value="uaType" style="margin-top: 1rem;">
-        <mdui-radio @click="changeUaStatus" :value="0">Random UA</mdui-radio>
-        <mdui-radio @click="changeUaStatus" :value="1">Custom UA</mdui-radio>
+        <mdui-radio @click="changeUaStatus" :value="0">随机 UA</mdui-radio>
+        <mdui-radio @click="changeUaStatus" :value="1">自定义 UA</mdui-radio>
     </mdui-radio-group>
     <div style="width: 50%;min-height: 10%;">
         <mdui-text-field :disabled="uaType==0?true:false" ref="uaTextField" rows="3" label="Input Your User-Agent" v-model="ua"></mdui-text-field>
     </div>
 
 
-    <h2 style="margin-top: 10vh;">Proxy Setting</h2>
+    <h2 style="margin-top: 10vh;">网络代理设置</h2>
     <div style="display: flex;text-align: center;margin-top: 1rem;">
-        <h5 style="margin: auto 0;">Use Proxy</h5>
+        <h5 style="margin: auto 0;">使用代理</h5>
         <mdui-switch :checked="proxyOpen==0?false:true" @change="changeProxyStatus" style="margin-left: 1rem;"></mdui-switch>
     </div>
     <div style="width: 50%;min-height: 10%;">
-        <mdui-text-field :disabled="proxyOpen==0?true:false" ref="proxyTextField" rows="3" label="Input Your Proxy" v-model="proxy"></mdui-text-field>
+        <mdui-text-field :disabled="proxyOpen==0?true:false" ref="proxyTextField" rows="3" label="输入代理网络地址" v-model="proxy"></mdui-text-field>
         <mdui-button @click="submitUA" ref="uaButton" variant="elevated"
-            style="margin-top: 1rem; float: right;">Submit</mdui-button>
+            style="margin-top: 1rem; float: right;">提交</mdui-button>
     </div>
 
     <!-- 消息提示 -->
