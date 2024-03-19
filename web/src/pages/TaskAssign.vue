@@ -140,7 +140,7 @@ async function create_job_by_template() {
         console.error(error);
     }); // scrapyd调度任务
 
-    await axios.post('http://' + hostUrl.value.split(':')[0] + ':2233/add_url', queryString.stringify({'spiderName':job_dict[job.value], 'url':job_url_dict[job.value]}), {
+    await axios.post('http://localhost:2233/add_url', queryString.stringify({'spiderName':job_dict[job.value], 'url':job_url_dict[job.value]}), {
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
     }).then(function (response) {
         if (response.data == 'ok') {
