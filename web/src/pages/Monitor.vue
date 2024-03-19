@@ -44,7 +44,7 @@
             </tr>
         </thead>
         <tbody class="table-group-divider" v-for="hostAndTask, idx in hostAndTask_list" :key="idx">
-            <tr @click="get_info(task.project, task.spider, task.id)" v-for="task in hostAndTask.running"
+            <tr @click="get_info(hostAndTask.ip+':'+hostAndTask.port, task.project, task.spider, task.id)" v-for="task in hostAndTask.running"
                 :key="task.id">
                 <td><u>{{ task.project + "." + task.spider }}</u></td>
                 <td><span class="d-inline-block text-truncate" style="max-width: 100px;">{{ task.id }}</span></td>
@@ -56,7 +56,7 @@
                 <td><span class="badge text-bg-success">正在运行</span></td>
                 <td><a @click="cancel_job(hostAndTask.ip, hostAndTask.port, task.project, task.id)">终止</a></td>
             </tr>
-            <tr @click="get_info(task.project, task.spider, task.id)" v-for="task in hostAndTask.pending"
+            <tr @click="get_info(hostAndTask.ip+':'+hostAndTask.port, task.project, task.spider, task.id)" v-for="task in hostAndTask.pending"
                 :key="task.id">
                 <td><u>{{ task.project + "." + task.spider }}</u></td>
                 <td><span class="d-inline-block text-truncate" style="max-width: 100px;">{{ task.id }}</span></td>
@@ -70,7 +70,7 @@
                 </td>
             </tr>
             <tr v-for="task in hostAndTask.finished" :key="task.id">
-                <td @click="get_info(task.project, task.spider, task.id)"><u>{{ task.project + "." + task.spider }}</u>
+                <td @click="get_info(hostAndTask.ip+':'+hostAndTask.port, task.project, task.spider, task.id)"><u>{{ task.project + "." + task.spider }}</u>
                 </td>
                 <td><span class="d-inline-block text-truncate" style="max-width: 100px;">{{ task.id }}</span></td>
                 <td><span class="d-inline-block text-truncate" style="max-width: 180px;">{{ task.start_time
@@ -125,6 +125,7 @@ import 'mdui/components/dialog.js';
 import 'mdui/components/snackbar.js';
 import emitter from '@/tools/emitter.js';
 import * as echarts from 'echarts';
+import queryString from 'query-string';
 
 let host_list = ref([]); // 主机列表存放主机状态信息的列表
 let hosts = ref([]); // 存储所有主机ip与port的列表
@@ -243,14 +244,27 @@ function addHost() {
     dialog.value.open = true;
 } // 新建主机
 
-function get_info(project, spider, id) {
-    axios.get('/logs/' + project + '/' + spider + '/' + id + '.log', {
+async function get_info(host, project, spider, id) {
+    await axios.post("http://localhost:2233/get_log", queryString.stringify({url:'http://'+host+'/logs/' + project + '/' + spider + '/' + id + '.log'}),{
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
     }).then(function (response) {
-        // console.log(response.data);
+        // console.log(response.data)
         info.value = response.data;
-    }).catch(function (error) {
-        console.log(error)
-    })
+    }).then(function (error) {
+        console.error(error);
+    });
+
+    // jsonp('http://192.168.146.128:6800/logs/' + project + '/' + spider + '/' + id + '.log').then(res => {
+    //     console.log(res.data)
+    // })
+    
+    // axios.get('/logs/' + project + '/' + spider + '/' + id + '.log', {
+    // }).then(function (response) {
+    //     // console.log(response.data);
+    //     info.value = response.data;
+    // }).catch(function (error) {
+    //     console.log(error)
+    // })
 } // 获取日志信息
 
 function cancel_operate() {

@@ -20,9 +20,9 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url))
     }
   },
-  server: {
-    proxy: {
-      '/log': 'http://127.0.0.1:6800',
-    }
-  }
+  // server: {
+  //   proxy: {
+  //     '/log': 'http://127.0.0.1:6800',
+  //   }
+  // }
 })
