@@ -144,7 +144,7 @@ let timer = ref() // 定时器
 
 async function get_hosts() {
     let index;
-    await axios.get("http://localhost:8080/host").then(function (response) {
+    await axios.get("http://localhost:8080/host").then(async function (response) {
         hosts.value = response.data;
         // console.log("######")
         // console.log(hosts.value[0].ip)
@@ -155,7 +155,7 @@ async function get_hosts() {
             let hostPort = hosts.value[index].port;
             let url = "http://" + hostIp + ":" + hostPort + "/daemonstatus.json";
             // console.log(url)
-            axios.get(url, {
+            await axios.get(url, {
                 timeout: 1000,
             }).then(function (response) {
                 // console.log(response.data);
