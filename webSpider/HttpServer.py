@@ -4,7 +4,6 @@ import socketserver
 from http.server import BaseHTTPRequestHandler
 import urllib.parse
 import SpiderUtil
-import time
 import NewsAnalysis
 import os
 
@@ -14,12 +13,20 @@ PORT = 2233
 class myHandler(BaseHTTPRequestHandler):
      
     def do_OPTIONS(self):
+        # elif self.path == '/'
         self.send_OK('ok')
         return
 
     def do_GET(self):
         # url = self.path
-        self.send_OK('ok')
+        if self.path == '/data_sync':
+            os.system('python redis_to_mysql.py')
+            self.send_OK('ok')
+        elif self.path == '/kill_driver':
+            SpiderUtil.kill_driver()
+            self.send_OK('ok')
+        else:
+            self.send_Error()
         return
         
     def do_POST(self):
@@ -95,6 +102,42 @@ class myHandler(BaseHTTPRequestHandler):
             content = data['content'][0]
             res = NewsAnalysis.sentiment_analysis(content)
             self.send_OK(res)
+        elif self.path == '/keyWords':
+            content_length = int(self.headers['Content-Length'])
+            if content_length ==0:
+                self.send_Error()
+                return
+            body_bytes = self.rfile.read(content_length)
+            body_str = str(body_bytes, encoding = "utf8")
+            body = json.dumps(urllib.parse.parse_qs(body_str))
+            data = json.loads(bytes(body, encoding = "utf8").decode())
+            content = data['content'][0]
+            res = NewsAnalysis.get_keyWords(content)
+            self.send_OK(res)
+        elif self.path == '/add_url':
+            content_length = int(self.headers['Content-Length'])
+            if content_length ==0:
+                self.send_Error()
+                return
+            body_bytes = self.rfile.read(content_length)
+            body_str = str(body_bytes, encoding = "utf8")
+            body = json.dumps(urllib.parse.parse_qs(body_str))
+            data = json.loads(bytes(body, encoding = "utf8").decode())
+            SpiderUtil.add_url(data['spiderName'][0], data['url'][0])
+            self.send_OK('ok')
+        elif self.path == '/get_log':
+            content_length = int(self.headers['Content-Length'])
+            if content_length ==0:
+                self.send_Error()
+                return
+            body_bytes = self.rfile.read(content_length)
+            body_str = str(body_bytes, encoding = "utf8")
+            body = json.dumps(urllib.parse.parse_qs(body_str))
+            data = json.loads(bytes(body, encoding = "utf8").decode())
+            log = SpiderUtil.get_log(data['url'][0])
+            self.send_OK(log)
+        else:
+            self.send_Error()
         return
     
     def send_wordCloud(self):

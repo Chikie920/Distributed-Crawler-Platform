@@ -1,0 +1,33 @@
+import scrapy
+from scrapy.linkextractors import LinkExtractor
+from scrapy_redis.spiders import RedisCrawlSpider
+from scrapy.spiders import Rule
+
+
+class $classname(RedisCrawlSpider):
+    name = "$name"
+
+    redis_key = '$name:urls'
+
+    custom_settings = {
+        'DOWNLOAD_DELAY' : 2,
+        'ITEM_PIPELINES' : {
+            'scrapy_redis.pipelines.RedisPipeline': 400,
+        }
+    }
+
+    rules = (Rule(LinkExtractor(allow=r""), callback="parse_item", follow=True),)
+
+    def parse_item(self, response):
+        item = {}
+        #item["domain_id"] = response.xpath('//input[@id="sid"]/@value').get()
+        #item["name"] = response.xpath('//div[@id="name"]').get()
+        #item["description"] = response.xpath('//div[@id="description"]').get()
+        return item
+
+    def __init__(self, rules=False, *args, **kwargs):
+        if rules!=False:
+            $classname.rules = rules
+        super($classname, self).__init__(*args, **kwargs)
+            
+

@@ -25,6 +25,7 @@ class SohuSpider(RedisCrawlSpider):
             'scrapy_redis.pipelines.RedisPipeline': 400,
         }
     }
+    
 
     def parse_item(self, response):
         item = SpiderItem()
@@ -43,4 +44,5 @@ class SohuSpider(RedisCrawlSpider):
         time.sleep(3)
         yield item
         
+
 

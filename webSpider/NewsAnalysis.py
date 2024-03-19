@@ -31,3 +31,16 @@ def sentiment_analysis(content):
     pos_grade = pos_num/(pos_num+neg_num)
     neg_grade = neg_num/(pos_num+neg_num)
     return json.dumps({'pos_grade':pos_grade, 'neg_grade':neg_grade})
+
+def get_keyWords(content):
+    jieba.set_dictionary('dict.txt') # 导入字典
+    jieba.analyse.set_stop_words('stopwords_hit.txt') # 导入停用词
+
+    keys = []
+    weights = []
+    for key, weight in jieba.analyse.textrank(content, withWeight=True):
+        # print('%s %s' % (key, weight))
+        keys.append(key)
+        weights.append(weight)
+    # print(keys)
+    return json.dumps({'keys':keys, 'weight':weights})

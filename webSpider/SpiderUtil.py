@@ -1,10 +1,26 @@
 import os
+import redis
 import time
+import requests
+
+def get_log(url):
+    res = requests.get(url)
+    # res.encoding = res.apparent_encoding
+    return res.text
+
+def kill_driver():
+    os.system('taskkill /f /t /im chromedriver.exe')
+
+def add_url(spiderName ,url):
+    redis_connection = redis.Redis(host='127.0.0.1', port= 6379, db= 0) # 连接redis数据库
+    redis_connection.rpush(spiderName+':urls', url) # 新增目标链接
+    redis_connection.close()
 
 def create_spider(job_name, job_url):
     if(os.getcwd().split('\\')[-1]!='spider'):
         os.chdir('spider')
     os.system('scrapy genspider -t mycrawl '+job_name+' '+job_url)
+    os.chdir('../')
 
 def run_spider(spiderName, options):
     if(os.getcwd().split('\\')[-1]!='spider'):
@@ -51,3 +67,6 @@ def run_spider(spiderName, options):
     else:
         print('curl http://localhost:6800/schedule.json -d project=spider -d spider='+spiderName+options_param)
         os.system('curl http://localhost:6800/schedule.json -d project=spider -d spider='+spiderName+options_param)
+
+    if(os.getcwd().split('\\')[-1]=='spider'):
+        os.chdir('../')
