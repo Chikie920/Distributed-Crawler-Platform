@@ -210,7 +210,7 @@ async function create_job_custom() {
         console.error(error);
     }); // 提交自定义创建请求
 
-    await axios.post('http://' + hostUrl.value.split(':')[0] + ':2233/add_url', queryString.stringify({'spiderName':job_name.value, 'url':job_url.value}), {
+    await axios.post('http://localhost:2233/add_url', queryString.stringify({'spiderName':job_name.value, 'url':job_url.value}), {
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
     }).then(function (response) {
         if (response.data == 'ok') {
