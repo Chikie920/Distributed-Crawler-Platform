@@ -16,7 +16,7 @@ public class ResourceManageController {
 
     @GetMapping("/resmag")
     public List<News> getAllNews() {
-        System.out.println("getAllNews....cnm");
+        System.out.println("getAllNews....");
         return newsService.getAllNews();
     } // 获取所有新闻数据
 

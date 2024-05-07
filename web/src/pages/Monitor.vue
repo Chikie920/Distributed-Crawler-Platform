@@ -427,13 +427,13 @@ onMounted(async () => {
         }).catch(error => {
             console.error(error);
         }); // 新增目标url
-    }, 1000 * 30); // 定时执行数据库同步
+    }, 1000 * 5); // 定时执行数据库同步
     // get_tasks();
 }); // DOM加载时调用
 
 onUnmounted(() => {
     get_online_host(); // 触发事件
-    clearInterval(timer.value); // 移除定时器
+    // clearInterval(timer.value); // 移除定时器
 }); // DOM被移除时调用
 
 

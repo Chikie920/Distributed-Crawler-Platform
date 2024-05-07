@@ -20,7 +20,7 @@ public interface NewsDao {
     @Select("SELECT * FROM news WHERE id = #{id}")
     News getNewsById(String id);
 
-    @Select("SELECT * FROM news WHERE id LIKE '${taskName}%'")
+    @Select("SELECT * FROM news WHERE id LIKE '%${taskName}%'")
     List<News> getNewsByTaskName(String taskName);
 
     @Select("SELECT id FROM news")

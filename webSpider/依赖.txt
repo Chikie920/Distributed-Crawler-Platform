@@ -1,3 +1,5 @@
+scrapyd
+scrapyd-client
 selenium
 chromedriver
 gne
